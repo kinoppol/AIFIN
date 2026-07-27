@@ -43,7 +43,7 @@ $nav = function (string $key) use ($active) {
     <div class="topbar">
       <div style="font-weight:600;font-size:15px"><?= e($title ?? '') ?></div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-        <button type="button" data-theme-toggle class="btn btn-ghost btn-sm"><span data-theme-label>ตามระบบ</span></button>
+        <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>
         <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
           <div class="avatar"><?= e(mb_substr($user['name'] ?? 'A', 0, 1)) ?></div>
           <div style="font-size:12.5px;line-height:1.25">

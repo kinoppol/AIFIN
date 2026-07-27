@@ -14,7 +14,7 @@
       <?= $content ?>
     </div>
     <div style="text-align:center;margin-top:18px">
-      <button type="button" data-theme-toggle class="btn btn-ghost btn-sm"><span data-theme-label>ตามระบบ</span></button>
+      <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>
     </div>
   </div>
 </div>

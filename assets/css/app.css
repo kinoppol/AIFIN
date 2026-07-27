@@ -42,6 +42,9 @@ h1,h2,h3{letter-spacing:-.02em}
 .btn-block{width:100%;justify-content:center}
 .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+/* icon-only theme toggle: keep it square */
+[data-theme-toggle]{padding:7px;width:32px;height:32px;justify-content:center}
+[data-theme-toggle] [data-theme-label]{display:inline-flex}
 
 /* --- cards / surfaces ----------------------------------------------------- */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
