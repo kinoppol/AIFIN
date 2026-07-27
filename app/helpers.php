@@ -101,6 +101,25 @@ function contract_max_redeem(array $c): int
     return max(0, min((int) $c['units_remaining'], $byDuration));
 }
 
+/**
+ * Render a contract's remaining balance, showing AI units (M) and/or GPU cards
+ * (G) depending on which the contract holds. GPU is shown in the accent-2 colour.
+ */
+function balance_summary(array $c): string
+{
+    $lines = [];
+    if ((int) $c['units_total'] > 0) {
+        $lines[] = '<div>' . (int) $c['units_remaining'] . ' / ' . (int) $c['units_total'] . ' M</div>';
+    }
+    if ((int) ($c['gpu_total'] ?? 0) > 0) {
+        $lines[] = '<div style="color:var(--accent2)">' . (int) $c['gpu_remaining'] . ' / ' . (int) $c['gpu_total'] . ' G</div>';
+    }
+    if (!$lines) {
+        $lines[] = '<span class="faint">—</span>';
+    }
+    return implode('', $lines);
+}
+
 /** Map a status code to [pill css class, Thai label] for the given domain. */
 function status_pill(string $domain, string $status): array
 {

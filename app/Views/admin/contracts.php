@@ -24,8 +24,14 @@
             <td class="mono" style="color:var(--accent);font-weight:600;font-size:12px"><?= e($c['contract_no']) ?></td>
             <td><div><?= e($c['customer_name']) ?></div></td>
             <td>
-              <div class="mono" style="font-weight:600;font-size:13px"><?= (int)$c['units_remaining'] ?> / <?= (int)$c['units_total'] ?> M</div>
-              <div class="progress" style="width:110px;margin-top:6px"><span style="width:<?= $pct ?>%"></span></div>
+              <?php if ((int)$c['units_total'] > 0): ?>
+                <div class="mono" style="font-weight:600;font-size:13px"><?= (int)$c['units_remaining'] ?> / <?= (int)$c['units_total'] ?> M</div>
+                <div class="progress" style="width:110px;margin-top:6px"><span style="width:<?= $pct ?>%"></span></div>
+              <?php endif; ?>
+              <?php if ((int)$c['gpu_total'] > 0): ?>
+                <div class="mono" style="font-weight:600;font-size:13px;color:var(--accent2);margin-top:<?= (int)$c['units_total']>0?'6':'0' ?>px"><?= (int)$c['gpu_remaining'] ?> / <?= (int)$c['gpu_total'] ?> G</div>
+              <?php endif; ?>
+              <?php if ((int)$c['units_total']==0 && (int)$c['gpu_total']==0): ?><span class="faint">—</span><?php endif; ?>
             </td>
             <td class="muted" style="font-size:12.5px">
               <?= thai_date($c['start_date']) ?> – <?= thai_date($c['end_date']) ?>

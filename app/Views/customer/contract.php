@@ -15,8 +15,16 @@ $usedMonths = (int) $c['extension_months_used'];
     </div>
   </div>
   <div style="text-align:right">
-    <div class="mono" style="font-size:40px;font-weight:600"><?= units($c['units_remaining']) ?></div>
-    <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก <?= units($c['units_total']) ?></div>
+    <?php $hasM = (int)$c['units_total'] > 0; $hasG = (int)$c['gpu_total'] > 0; ?>
+    <?php if ($hasM): ?>
+      <div class="mono" style="font-size:40px;font-weight:600"><?= units($c['units_remaining']) ?></div>
+      <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก <?= units($c['units_total']) ?></div>
+    <?php endif; ?>
+    <?php if ($hasG): ?>
+      <div class="mono" style="font-size:<?= $hasM ? '22' : '40' ?>px;font-weight:600;color:#7fe0cf;margin-top:<?= $hasM ? '8' : '0' ?>px"><?= (int)$c['gpu_remaining'] ?> G</div>
+      <div style="font-size:12.5px;color:#8ba1c4">การ์ดจอ คงเหลือจาก <?= (int)$c['gpu_total'] ?> ตัว</div>
+    <?php endif; ?>
+    <?php if (!$hasM && !$hasG): ?><div class="mono" style="font-size:40px;font-weight:600">0</div><?php endif; ?>
   </div>
 </div>
 

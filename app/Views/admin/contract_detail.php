@@ -18,8 +18,16 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
       </div>
     </div>
     <div style="text-align:right">
-      <div class="mono" style="font-size:44px;font-weight:600"><?= units($c['units_remaining']) ?></div>
-      <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก <?= units($c['units_total']) ?> · มูลค่า <?= number_format($liabilityDays) ?> วันใช้งาน</div>
+      <?php $hasM = (int)$c['units_total'] > 0; $hasG = (int)$c['gpu_total'] > 0; ?>
+      <?php if ($hasM): ?>
+        <div class="mono" style="font-size:44px;font-weight:600"><?= units($c['units_remaining']) ?></div>
+        <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก <?= units($c['units_total']) ?> · มูลค่า <?= number_format($liabilityDays) ?> วันใช้งาน</div>
+      <?php endif; ?>
+      <?php if ($hasG): ?>
+        <div class="mono" style="font-size:<?= $hasM ? '22' : '44' ?>px;font-weight:600;color:#7fe0cf;margin-top:<?= $hasM ? '8' : '0' ?>px"><?= (int)$c['gpu_remaining'] ?> / <?= (int)$c['gpu_total'] ?> G</div>
+        <div style="font-size:12.5px;color:#8ba1c4">การ์ดจอคงเหลือ</div>
+      <?php endif; ?>
+      <?php if (!$hasM && !$hasG): ?><div class="mono" style="font-size:44px;font-weight:600">0</div><?php endif; ?>
     </div>
   </div>
 
