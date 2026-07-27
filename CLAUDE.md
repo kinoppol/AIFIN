@@ -2,48 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What this repository is
+## What this is
 
-This is a **Claude Design handoff bundle** (see [README.md](README.md)), not an application. A user mocked up a UI in Claude Design (claude.ai/design) and exported it so a coding agent can reimplement it for real. There is **no build system, no test suite, no package manager, and no backend yet** — the repo currently contains only the design prototype and its runtime.
+**AIPRO Contracts** — a working PHP 8 / MariaDB web app for selling prepaid "AI Pro" access as contracts. It was built from a Claude Design handoff (the original prototype lives in `project/`; see [README.md](README.md)). The app is framework-free plain PHP (no Composer/vendor) so it runs on stock XAMPP.
 
-The working directory sits under XAMPP's `htdocs` (`C:\xampp\htdocs\AIFIN`), so the eventual target stack is likely PHP served by Apache — but nothing has been built yet. **Confirm the target stack with the user before implementing.**
+Domain rule that drives everything: **1 unit "M" = 30 days of access** (value fixed system-wide; only per-M price varies). Customers buy units into a **contract** (1-year term, extendable up to **+6 months** total), units sit in the contract wallet until **redeemed** against an email, which enqueues provisioning.
 
-### Your job (per README)
+## Run / install
 
-Recreate the design **pixel-perfectly** in whatever technology fits the target codebase. Match the visual output; do **not** copy the prototype's internal structure (the DC framework below) unless it happens to fit. Read the HTML/CSS directly rather than rendering it — everything (dimensions, colors, layout) is spelled out inline. Only render in a browser if the user explicitly asks.
+- Serve the repo root under Apache (`http://localhost/AIFIN/`) or via the dev server: `php -S 127.0.0.1:8000 -t .` (use full path `C:\xampp\php\php.exe` — `php` isn't on PATH).
+- First run redirects to **`install.php`**. It is **re-runnable**: creates the DB, writes `config/config.php` (gitignored — holds DB creds + `app_key`), runs migrations, seeds packages + the admin account (credentials set during install), optional demo data, and has a "fresh install" wipe checkbox.
+- Lint everything: `find . -name '*.php' -not -path './project/*' | while read f; do C:/xampp/php/php.exe -l "$f"; done`
+- There is no automated test suite; verify by driving the HTTP flow (install → login → admin/customer actions).
 
-## Files
+## ⚠️ MariaDB thread-pool crash (important)
 
-- `project/AI Pro Contracts.dc.html` — **the primary design.** Read it in full before implementing.
-- `project/support.js` — the Claude Design ("DC") React-based runtime that makes the `.dc.html` file render. This is vendored tooling; you will **not** port it — you reimplement the *design*, not the runtime.
-- `project/uploads/` — image assets referenced by the design.
+XAMPP's MariaDB 10.4 on Windows defaults to `thread_handling=pool-of-threads`, which **intermittently segfaults on DDL** (`CREATE TABLE`/`ALTER`) run over a client connection — the crash stack is in `pool_of_threads_scheduler`/`tp_callback`. This can make `install.php` or a migration run fail with **"MySQL server has gone away"** and leave an orphaned `data/<db>/*.ibd` tablespace (which then blocks `DROP DATABASE` with "directory not empty").
 
-## How the `.dc.html` prototype works (so you can read it)
+Recovery: restart mysqld, delete the orphaned `.ibd`, `DROP DATABASE`, retry — it usually succeeds on retry since it's timing-dependent. A permanent fix is setting `thread_handling=one-thread-per-connection` in `my.ini`, but that edits the user's server config — **ask first.**
 
-A `.dc.html` file is a self-contained React app rendered at runtime by `support.js` (which lazy-loads React/ReactDOM UMD from a CDN). Structure:
+## Architecture
 
-- `<x-dc>` wraps the template. `support.js` walks it and builds a React tree.
-- **Custom directives** interpreted by the runtime:
-  - `<sc-if value="{{ expr }}">` — conditional render.
-  - `<sc-for list="{{ arr }}" as="x">` — repeat per item; `hint-placeholder-count` is editor-only.
-  - `{{ expr }}` — interpolates a value from `renderVals()` (attribute values, inline `style` objects, `onClick` handlers, text).
-- A single `<script type="text/x-dc" data-dc-script>` defines `class Component extends DCLogic` (a React.Component subclass). Its `renderVals()` returns the object whose keys back every `{{ }}` in the template; `state`/`setState` drive navigation. `data-props` on that script declares editor-tunable props (theme colors, toggles).
+Front controller `index.php` → `App\Core\Router` (matches `$_SERVER['PATH_INFO']`, so URLs look like `/AIFIN/index.php/admin/contracts` — **no mod_rewrite needed**; build links with the `url()` helper). `app/bootstrap.php` wires the autoloader (`app/helpers.php`), loads config, starts the session, and returns whether the app is installed.
 
-So to understand any screen: find its `<sc-if>` block in the template, then find the matching data arrays (`plans`, `kpis`, `contracts`, `ledger`, `queue`, etc.) built in `renderVals()` near the bottom of the file.
+Layers (all under `app/`):
+- **Core/** — `Router`, `Controller`, `View` (plain-PHP templates + layouts), `Model` (tiny active-record base), `Database` (PDO singleton), `Config`, `Auth` (session), `Csrf`, `Migrator`.
+- **Models/** — thin table classes (`User`, `Contract`, `Package`, `UnitLedger`, `Redemption`, `ExtensionRequest`, `Setting`).
+- **Services/ContractService.php** — **all business rules live here**, inside transactions: `purchase`, `redeem`, `requestExtension`/`approveExtension`/`rejectExtension`, redemption status. Enforces unit balances, ledger consistency, and the 6-month extension cap (over-quota requests are flagged/blocked, not accepted). Controllers stay thin — put new domain logic here.
+- **Controllers/** — `LandingController`, `AuthController`, `Customer\AccountController`, `Admin\*` (Dashboard, Contract, Wallet, Redeem, Extension, Package, Migration).
+- **Views/** — `layouts/app.php` is the admin shell (the default layout, used only by admin); landing/customer/auth use their own layouts. `partials/head.php` and `partials/flash.php` are shared. Design tokens are in `assets/css/app.css` (ported from the prototype's CSS variables, incl. light/dark).
 
-## The product being designed
+Record IDs are passed as `?id=` query params (the router matches only the static path). CSRF: every POST form includes `csrf_field()` and its controller calls `Csrf::verify()`.
 
-"AIPRO Contracts" (Thai-language UI) — a system for **selling AI Pro access as prepaid contracts**. Core domain model, which the whole design encodes:
+## Database & migrations
 
-- **Unit "M"**: 1 M = 30 days of AI Pro access, always (the 30-day value is fixed system-wide; only the per-unit *price* varies by package/promo).
-- **Contract**: 1-year term, extendable by up to +6 months total. Customers buy units up front (price locked at purchase) into an account "wallet," then later **redeem** units — binding them to a specific email — which queues a vendor to provision real AI Pro access.
+Schema is defined by numbered files in `migrations/` (`NNN_description.php` returning `['name'=>…, 'up'=> string|string[]|callable(PDO)]`). Applied files are tracked in the `migrations` table, so the runner is idempotent. **To change schema for the future: add a new `NNN_*.php` file, then apply it via the Admin → "Migrations ฐานข้อมูล" menu (or re-run `install.php`).** Never edit an already-applied migration — add a new one.
 
-The design has two top-level views (`state.view`):
-- **Landing** (`isLanding`): marketing page — hero, how-it-works, rules, pricing tiers, FAQ.
-- **Admin** (`isAdmin`): sidebar app with pages (`state.page`) — Dashboard, Contracts list, Contract detail (unit ledger + extension quota + bound seats), Customer wallets, Redeem queue, Extension requests, Packages & promotions.
+## Conventions
 
-Preserve this domain model and the Thai copy when reimplementing.
-
-## Theming
-
-The design ships a full light/dark token system as CSS custom properties on `:root` (with `prefers-color-scheme` plus an explicit `html[data-theme="light|dark"]` override). Fonts: IBM Plex Sans Thai (UI) and JetBrains Mono (numbers/IDs). Carry these tokens and the three-way theme cycle (system → light → dark) into the real implementation.
+- UI copy and seed data are **Thai**; keep new user-facing strings Thai to match.
+- Helpers in `app/helpers.php`: `url()`, `asset()`, `e()`, `config()`, `csrf_field()`, `units()`, `baht()`, `thai_date()` (Buddhist-era), `pill()`/`status_pill()` (status → CSS pill + Thai label).
+- `project/` is the original design reference (read-only handoff bundle) — not part of the running app.
