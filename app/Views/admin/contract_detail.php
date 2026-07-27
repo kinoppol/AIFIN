@@ -51,7 +51,8 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
       <!-- redeem on behalf of customer -->
       <div class="card card-pad">
         <div style="font-weight:600;font-size:15px">แลกหน่วยแทนลูกค้า</div>
-        <form method="post" action="<?= e(url('admin/contracts/redeem')) ?>" style="margin-top:14px">
+        <form method="post" action="<?= e(url('admin/contracts/redeem')) ?>" style="margin-top:14px"
+              data-confirm="ยืนยันแลกหน่วยแทนลูกค้าตามอีเมลและจำนวนที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
           <div class="field"><label>อีเมลที่ต้องการผูกบัญชี</label><input class="input" type="email" name="email" required placeholder="user@example.com"></div>
@@ -88,8 +89,8 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
                 </div>
                 <div class="muted" style="font-size:12.5px;margin:8px 0">เหตุผล: <?= e($x['reason']) ?></div>
                 <div style="display:flex;gap:8px">
-                  <form method="post" action="<?= e(url('admin/extensions/approve')) ?>" style="flex:1"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-primary btn-sm btn-block" type="submit">อนุมัติ</button></form>
-                  <form method="post" action="<?= e(url('admin/extensions/reject')) ?>"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">ปฏิเสธ</button></form>
+                  <form method="post" action="<?= e(url('admin/extensions/approve')) ?>" style="flex:1" data-confirm="อนุมัติคำขอขยายอายุ <?= e($x['ext_no']) ?> (+<?= (int)$x['months_requested'] ?> เดือน)?" data-confirm-title="ยืนยันการอนุมัติ" data-confirm-ok="อนุมัติ"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-primary btn-sm btn-block" type="submit">อนุมัติ</button></form>
+                  <form method="post" action="<?= e(url('admin/extensions/reject')) ?>" data-confirm="ปฏิเสธคำขอขยายอายุ <?= e($x['ext_no']) ?>?" data-confirm-title="ยืนยันการปฏิเสธ" data-confirm-ok="ปฏิเสธ" data-confirm-danger><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">ปฏิเสธ</button></form>
                 </div>
               </div>
             <?php endforeach; ?>

@@ -24,8 +24,8 @@
         <div class="muted" style="font-size:12.5px;margin-top:14px;line-height:1.6">เหตุผล: <?= e($x['reason']) ?></div>
         <?php if (!$decided): ?>
           <div style="display:flex;gap:9px;margin-top:16px">
-            <form method="post" action="<?= e(url('admin/extensions/approve')) ?>" style="flex:1"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-primary btn-block" type="submit" <?= $blocked ? 'disabled' : '' ?>>อนุมัติ</button></form>
-            <form method="post" action="<?= e(url('admin/extensions/reject')) ?>"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-danger" type="submit">ปฏิเสธ</button></form>
+            <form method="post" action="<?= e(url('admin/extensions/approve')) ?>" style="flex:1" data-confirm="อนุมัติคำขอขยายอายุ <?= e($x['ext_no']) ?> (+<?= (int)$x['months_requested'] ?> เดือน) ของ <?= e($x['customer_name']) ?>?" data-confirm-title="ยืนยันการอนุมัติ" data-confirm-ok="อนุมัติ"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-primary btn-block" type="submit" <?= $blocked ? 'disabled' : '' ?>>อนุมัติ</button></form>
+            <form method="post" action="<?= e(url('admin/extensions/reject')) ?>" data-confirm="ปฏิเสธคำขอขยายอายุ <?= e($x['ext_no']) ?> ของ <?= e($x['customer_name']) ?>?" data-confirm-title="ยืนยันการปฏิเสธ" data-confirm-ok="ปฏิเสธ" data-confirm-danger><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$x['id'] ?>"><button class="btn btn-danger" type="submit">ปฏิเสธ</button></form>
           </div>
           <?php if ($blocked): ?><div class="faint" style="font-size:12px;margin-top:8px">คำขอนี้เกินโควตา <?= $maxExt ?> เดือน — อนุมัติไม่ได้</div><?php endif; ?>
         <?php endif; ?>

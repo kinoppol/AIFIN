@@ -23,7 +23,9 @@ $unitDays = (int) config('app.unit_days', 30);
       <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
       <div style="font-size:16px;font-weight:600"><?= baht($total) ?></div>
       <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย</div>
-      <form method="post" action="<?= e(url('account/buy')) ?>" style="margin-top:20px" onsubmit="return confirm('ยืนยันทำสัญญาแพ็กเกจ <?= e($p['name']) ?> (<?= (int)$p['units'] ?> M) มูลค่า <?= baht($total) ?>?')">
+      <form method="post" action="<?= e(url('account/buy')) ?>" style="margin-top:20px"
+            data-confirm="ทำสัญญาแพ็กเกจ <?= e($p['name']) ?> (<?= (int)$p['units'] ?> M) มูลค่า <?= e(baht($total)) ?>&#10;ระบบจะออกสัญญาอายุ 1 ปีและเติมหน่วยเข้าคลังทันที"
+            data-confirm-title="ยืนยันการทำสัญญา" data-confirm-ok="ทำสัญญา">
         <?= csrf_field() ?>
         <input type="hidden" name="package_id" value="<?= (int)$p['id'] ?>">
         <button class="btn btn-block" type="submit" style="<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--navy);color:#fff' ?>">ทำสัญญาแพ็กเกจนี้</button>

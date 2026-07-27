@@ -45,7 +45,8 @@ $usedMonths = (int) $c['extension_months_used'];
     <!-- redeem -->
     <div class="card card-pad">
       <div style="font-weight:600;font-size:15px">แลกหน่วยเป็นสิทธิ์</div>
-      <form method="post" action="<?= e(url('account/redeem')) ?>" style="margin-top:14px">
+      <form method="post" action="<?= e(url('account/redeem')) ?>" style="margin-top:14px"
+            data-confirm="ยืนยันการแลกหน่วยเป็นสิทธิ์ตามจำนวนและอีเมลที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์นี้และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
         <?= csrf_field() ?>
         <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
         <div class="field"><label>อีเมลที่จะผูกสิทธิ์</label><input class="input" type="email" name="email" required></div>
@@ -61,7 +62,8 @@ $usedMonths = (int) $c['extension_months_used'];
       <div style="font-weight:600;font-size:15px">ขอขยายอายุสัญญา</div>
       <div class="muted" style="font-size:12.5px;margin-top:4px">ใช้ไป <?= $usedMonths ?> จาก <?= $maxExt ?> เดือน</div>
       <?php if ($usedMonths < $maxExt): ?>
-        <form method="post" action="<?= e(url('account/extend')) ?>" style="margin-top:12px">
+        <form method="post" action="<?= e(url('account/extend')) ?>" style="margin-top:12px"
+              data-confirm="ยืนยันส่งคำขอขยายอายุสัญญาตามจำนวนเดือนที่ระบุ?" data-confirm-title="ยืนยันคำขอขยายอายุ" data-confirm-ok="ส่งคำขอ">
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
           <div class="field"><label>จำนวนเดือน (สูงสุด <?= $maxExt - $usedMonths ?>)</label><input class="input" type="number" name="months" min="1" max="<?= $maxExt - $usedMonths ?>" required></div>
