@@ -22,7 +22,7 @@ class ExtensionRequest extends Model
     public static function open(): array
     {
         return static::db()->query(
-            "SELECT x.*, c.contract_no, c.customer_name, c.units_remaining
+            "SELECT x.*, c.contract_no, c.customer_name, c.units_remaining, c.units_total, c.gpu_remaining, c.gpu_total
              FROM extension_requests x
              JOIN contracts c ON c.id = x.contract_id
              ORDER BY FIELD(x.status,'pending','reviewing','over_quota','approved','rejected'), x.id DESC"

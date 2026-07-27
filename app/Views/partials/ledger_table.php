@@ -12,7 +12,12 @@
   <tbody>
   <?php foreach ($ledger as $l):
     $amt = (int) $l['amount'];
-    $color = $amt > 0 ? 'var(--ok)' : ($amt < 0 ? 'var(--danger)' : 'var(--muted)');
+    $isGpu = (int) ($l['gpu_amount'] ?? 0) !== 0;
+    // GPU rows show the G movement/balance; everything else shows M.
+    $showAmt = $isGpu ? (int) $l['gpu_amount'] : $amt;
+    $unit = $isGpu ? 'G' : 'M';
+    $showBal = $isGpu ? (int) $l['gpu_balance'] : (int) $l['balance'];
+    $color = $showAmt > 0 ? 'var(--ok)' : ($showAmt < 0 ? 'var(--danger)' : 'var(--muted)');
     $isPurchase = ($l['type'] === 'purchase');
     $total = $isPurchase ? $amt * (int) $c['price_per_m'] : 0;
     $rid = 'receipt-' . (int) $l['id'];
@@ -32,8 +37,8 @@
           </div>
         <?php endif; ?>
       </td>
-      <td class="mono" style="font-weight:600;color:<?= $color ?>;white-space:nowrap"><?= ($amt > 0 ? '+' : '') . $amt ?> M</td>
-      <td class="mono muted" style="text-align:right;font-size:12.5px;white-space:nowrap"><?= (int) $l['balance'] ?> M</td>
+      <td class="mono" style="font-weight:600;color:<?= $color ?>;white-space:nowrap"><?= ($showAmt > 0 ? '+' : '') . $showAmt ?> <?= $unit ?></td>
+      <td class="mono muted" style="text-align:right;font-size:12.5px;white-space:nowrap"><?= $showBal ?> <?= $unit ?></td>
     </tr>
   <?php endforeach; ?>
   <?php if (!$ledger): ?><tr><td colspan="4" class="muted" style="text-align:center">ยังไม่มีรายการ</td></tr><?php endif; ?>

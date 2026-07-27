@@ -48,7 +48,7 @@ $k = $kpis;
               <div style="font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= e($e['customer_name']) ?></div>
             </div>
             <div style="text-align:right;white-space:nowrap">
-              <div class="mono" style="font-size:13px;font-weight:600"><?= units($e['units_remaining']) ?></div>
+              <div class="mono" style="font-size:13px;font-weight:600"><?= (int)$e['units_total'] > 0 ? units($e['units_remaining']) : (int)$e['gpu_remaining'] . ' G' ?></div>
               <div class="muted" style="font-size:11.5px">เหลือ <?= $daysLeft ?> วัน</div>
             </div>
           </a>

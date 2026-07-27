@@ -97,9 +97,10 @@ class ContractService
             // Bundled/bonus GPU cards from an AI package.
             if ($bonusGpu > 0) {
                 $cc = Contract::find($contractId);
+                $newGpu = (int) $cc['gpu_remaining'] + $bonusGpu;
                 Contract::update($contractId, [
                     'gpu_total'     => (int) $cc['gpu_total'] + $bonusGpu,
-                    'gpu_remaining' => (int) $cc['gpu_remaining'] + $bonusGpu,
+                    'gpu_remaining' => $newGpu,
                 ]);
                 UnitLedger::insert([
                     'contract_id' => $contractId,
@@ -107,6 +108,8 @@ class ContractService
                     'description' => "แถมการ์ด GPU {$bonusGpu} ตัว (แพ็กเกจ {$pkgName})",
                     'amount'      => 0,
                     'balance'     => $balance,
+                    'gpu_amount'  => $bonusGpu,
+                    'gpu_balance' => $newGpu,
                     'type'        => 'adjust',
                 ]);
             }
@@ -347,6 +350,8 @@ class ContractService
                 'description' => "ซื้อการ์ด GPU {$cards} ตัว ({$pkgName} @ " . baht($pricePerCard) . "/การ์ด)",
                 'amount'      => 0,
                 'balance'     => (int) $c['units_remaining'],
+                'gpu_amount'  => $cards,
+                'gpu_balance' => (int) $c['gpu_remaining'],
                 'type'        => 'adjust',
             ]);
             $db->commit();
@@ -373,7 +378,8 @@ class ContractService
             if ((int) $c['gpu_remaining'] < 1) {
                 throw new RuntimeException('การ์ด GPU คงเหลือไม่พอสำหรับสร้าง API Key');
             }
-            Contract::update($contractId, ['gpu_remaining' => (int) $c['gpu_remaining'] - 1]);
+            $newGpu = (int) $c['gpu_remaining'] - 1;
+            Contract::update($contractId, ['gpu_remaining' => $newGpu]);
             $keyNo = ApiKey::nextNo();
             $id = ApiKey::insert([
                 'key_no'      => $keyNo,
@@ -387,6 +393,8 @@ class ContractService
                 'description' => "ขอสร้าง API Key {$keyNo} (ใช้การ์ด GPU 1 ตัว)",
                 'amount'      => 0,
                 'balance'     => (int) $c['units_remaining'],
+                'gpu_amount'  => -1,
+                'gpu_balance' => $newGpu,
                 'type'        => 'adjust',
             ]);
             $db->commit();

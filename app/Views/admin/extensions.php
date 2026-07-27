@@ -12,7 +12,7 @@
           <div>
             <div class="mono" style="font-size:12px;color:var(--accent)"><?= e($x['ext_no']) ?></div>
             <div style="font-weight:600;font-size:15.5px;margin-top:5px"><?= e($x['customer_name']) ?></div>
-            <div class="muted" style="font-size:12.5px;margin-top:3px"><?= e($x['contract_no']) ?> · คงเหลือ <?= units($x['units_remaining']) ?></div>
+            <div class="muted" style="font-size:12.5px;margin-top:3px"><?= e($x['contract_no']) ?> · คงเหลือ <?= (int)$x['units_total'] > 0 ? units($x['units_remaining']) : (int)$x['gpu_remaining'] . ' G' ?></div>
           </div>
           <?= pill('ext', $x['status']) ?>
         </div>
