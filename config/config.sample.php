@@ -17,6 +17,8 @@ return [
         // Standard contract length (months) and max extension (months).
         'contract_months'   => 12,
         'max_extension_months' => 6,
+        // Max units a customer can redeem in a single request.
+        'max_redeem_units'  => 12,
     ],
     'db' => [
         'host'    => '127.0.0.1',

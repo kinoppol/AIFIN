@@ -40,6 +40,7 @@ function write_config(array $db, array $app, string $appKey): bool
             'unit_days'            => (int) $app['unit_days'],
             'contract_months'      => 12,
             'max_extension_months' => 6,
+            'max_redeem_units'     => 12,
         ],
         'db'      => $db,
         'app_key' => $appKey,

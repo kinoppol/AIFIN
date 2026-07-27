@@ -90,15 +90,24 @@ function contract_days_left(array $c): int
     return max(0, (int) floor((strtotime($c['end_date']) - strtotime(date('Y-m-d'))) / 86400));
 }
 
+/** True once the contract's end date has passed (no more redeeming allowed). */
+function contract_is_expired(array $c): bool
+{
+    return strtotime($c['end_date']) < strtotime(date('Y-m-d'));
+}
+
 /**
- * Max units redeemable now: capped by both remaining units AND the remaining
- * contract duration (redeemed access must not outlive the contract).
+ * Max units redeemable in one request: min(remaining, per-request cap). Once the
+ * contract has expired no more units can be redeemed (0) — but access already
+ * redeemed keeps running until its own days are used up.
  */
 function contract_max_redeem(array $c): int
 {
-    $unitDays = max(1, (int) $c['unit_days']);
-    $byDuration = intdiv(contract_days_left($c), $unitDays);
-    return max(0, min((int) $c['units_remaining'], $byDuration));
+    if (contract_is_expired($c)) {
+        return 0;
+    }
+    $cap = (int) config('app.max_redeem_units', 12);
+    return max(0, min((int) $c['units_remaining'], $cap));
 }
 
 /**

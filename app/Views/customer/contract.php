@@ -45,14 +45,16 @@ $usedMonths = (int) $c['extension_months_used'];
         <?= csrf_field() ?>
         <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
         <div class="field"><label>อีเมลที่จะผูกสิทธิ์</label><input class="input" type="email" name="email" required></div>
-        <?php $maxRedeem = contract_max_redeem($c); $daysLeft = contract_days_left($c); ?>
-        <div class="field"><label>จำนวนหน่วย (แลกได้สูงสุด <?= $maxRedeem ?> M)</label>
+        <?php $maxRedeem = contract_max_redeem($c); $expired = contract_is_expired($c); $cap = (int) config('app.max_redeem_units', 12); ?>
+        <div class="field"><label>จำนวนหน่วย (แลกได้สูงสุด <?= $maxRedeem ?> M ต่อครั้ง)</label>
           <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
-        <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ <b data-redeem-days style="color:var(--text)">0</b> วัน · สัญญาเหลือ <?= $daysLeft ?> วัน</div>
+        <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
         <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
         <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>>ส่งคำขอแลก</button>
-        <?php if ($maxRedeem < (int)$c['units_remaining']): ?>
-          <div class="faint" style="font-size:11.5px;margin-top:8px">* จำกัดที่ <?= $maxRedeem ?> M เพราะระยะเวลาสิทธิ์ต้องไม่เกินอายุสัญญาที่เหลือ (<?= $daysLeft ?> วัน)</div>
+        <?php if ($expired): ?>
+          <div class="faint" style="font-size:11.5px;margin-top:8px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
+        <?php else: ?>
+          <div class="faint" style="font-size:11.5px;margin-top:8px">* แลกได้ครั้งละไม่เกิน <?= $cap ?> หน่วย · สิทธิ์การใช้งานคงอยู่แม้สัญญาหมดอายุ</div>
         <?php endif; ?>
       </form>
     </div>

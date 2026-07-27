@@ -141,20 +141,20 @@ class ContractService
             if (!$c) {
                 throw new RuntimeException('ไม่พบสัญญา');
             }
+            // Once the contract has expired, remaining units can no longer be
+            // redeemed (but access already redeemed keeps running to completion).
+            if (strtotime($c['end_date']) < strtotime(date('Y-m-d'))) {
+                throw new RuntimeException('สัญญาหมดอายุแล้ว ไม่สามารถแลกหน่วยเพิ่มได้');
+            }
+            $cap = (int) Config::get('app.max_redeem_units', 12);
+            if ($units > $cap) {
+                throw new RuntimeException("แลกได้ครั้งละไม่เกิน {$cap} หน่วย");
+            }
             if ((int) $c['units_remaining'] < $units) {
                 throw new RuntimeException('หน่วยคงเหลือไม่พอสำหรับการแลก');
             }
             $days = $units * (int) $c['unit_days'];
-            // Redeemed access must not outlive the contract: its duration cannot
-            // exceed the days remaining until the (possibly extended) end date.
-            $daysLeft = (int) floor((strtotime($c['end_date']) - strtotime(date('Y-m-d'))) / 86400);
-            if ($days > $daysLeft) {
-                throw new RuntimeException(
-                    "ระยะเวลาสิทธิ์ที่แลก ({$days} วัน) เกินอายุสัญญาที่เหลืออยู่ (" . max(0, $daysLeft) . " วัน)"
-                );
-            }
             $balance = (int) $c['units_remaining'] - $units;
-            $expires = date('Y-m-d', strtotime("+{$days} days"));
 
             Contract::update($contractId, ['units_remaining' => $balance]);
 
@@ -167,6 +167,7 @@ class ContractService
                 'type'        => 'redeem',
             ]);
 
+            // expires_at is set when provisioned (usage clock starts then).
             $id = Redemption::insert([
                 'redeem_no'   => Redemption::nextNo(),
                 'contract_id' => $contractId,
@@ -174,7 +175,6 @@ class ContractService
                 'units'       => $units,
                 'days'        => $days,
                 'status'      => 'pending',
-                'expires_at'  => $expires,
             ]);
 
             $db->commit();
@@ -194,7 +194,11 @@ class ContractService
         }
         $data = ['status' => $status];
         if ($status === 'success') {
+            // Usage is counted from the provision date (units * unit_days),
+            // and may run past the contract's own end date.
+            $r = Redemption::find($redemptionId);
             $data['provisioned_at'] = date('Y-m-d H:i:s');
+            $data['expires_at'] = date('Y-m-d', strtotime('+' . (int) ($r['days'] ?? 0) . ' days'));
         }
         Redemption::update($redemptionId, $data);
     }

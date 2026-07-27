@@ -64,7 +64,7 @@ function refreshRedeem(el) {
   if (out) out.textContent = (val * unitDays).toLocaleString();
   if (warn) {
     warn.style.display = over ? 'block' : 'none';
-    if (over) warn.textContent = 'แลกได้สูงสุด ' + max + ' M (จำกัดด้วยหน่วยคงเหลือ/อายุสัญญาที่เหลือ)';
+    if (over) warn.textContent = 'แลกได้สูงสุด ' + max + ' M ต่อครั้ง';
   }
   el.setCustomValidity(over ? 'จำนวนหน่วยเกินขีดจำกัดการแลก' : '');
   if (btn) btn.disabled = invalid;
