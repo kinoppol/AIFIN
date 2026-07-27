@@ -84,6 +84,23 @@ function baht(int|float|null $n): string
     return '฿' . number_format((float) $n);
 }
 
+/** Days remaining until a contract's end date (>= 0). */
+function contract_days_left(array $c): int
+{
+    return max(0, (int) floor((strtotime($c['end_date']) - strtotime(date('Y-m-d'))) / 86400));
+}
+
+/**
+ * Max units redeemable now: capped by both remaining units AND the remaining
+ * contract duration (redeemed access must not outlive the contract).
+ */
+function contract_max_redeem(array $c): int
+{
+    $unitDays = max(1, (int) $c['unit_days']);
+    $byDuration = intdiv(contract_days_left($c), $unitDays);
+    return max(0, min((int) $c['units_remaining'], $byDuration));
+}
+
 /** Map a status code to [pill css class, Thai label] for the given domain. */
 function status_pill(string $domain, string $status): array
 {

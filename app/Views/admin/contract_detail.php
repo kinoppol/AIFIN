@@ -27,23 +27,7 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
     <div class="card" style="overflow:hidden">
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:15px">บัญชีแยกประเภทหน่วย (Unit ledger)</div>
       <div class="table-wrap">
-        <table class="data">
-          <thead><tr><th>วันที่</th><th>รายการ</th><th>จำนวน</th><th style="text-align:right">คงเหลือ</th></tr></thead>
-          <tbody>
-          <?php foreach ($ledger as $l):
-            $amt = (int) $l['amount'];
-            $color = $amt > 0 ? 'var(--ok)' : ($amt < 0 ? 'var(--danger)' : 'var(--muted)');
-            $sign = $amt > 0 ? '+' : ''; ?>
-            <tr>
-              <td class="muted" style="font-size:12.5px"><?= thai_date($l['entry_date']) ?></td>
-              <td style="font-size:13px"><?= e($l['description']) ?></td>
-              <td class="mono" style="font-weight:600;color:<?= $color ?>"><?= $sign . $amt ?> M</td>
-              <td class="mono muted" style="text-align:right;font-weight:600;font-size:12.5px"><?= (int)$l['balance'] ?> M</td>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (!$ledger): ?><tr><td colspan="4" class="muted" style="text-align:center">ยังไม่มีรายการ</td></tr><?php endif; ?>
-          </tbody>
-        </table>
+        <?= (new App\Core\View())->partial('partials/ledger_table', ['ledger' => $ledger, 'c' => $c]) ?>
       </div>
     </div>
 
@@ -56,11 +40,16 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
           <div class="field"><label>อีเมลที่ต้องการผูกบัญชี</label><input class="input" type="email" name="email" required placeholder="user@example.com"></div>
-          <div class="field"><label>จำนวนหน่วยที่แลก (คงเหลือ <?= (int)$c['units_remaining'] ?> M)</label>
-            <input class="input" type="number" name="units" min="1" max="<?= (int)$c['units_remaining'] ?>" required
-                   data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>"></div>
-          <div class="muted" style="font-size:12.5px;margin:2px 0 12px">= สิทธิ์ AI Pro <b data-redeem-days style="color:var(--text)">0</b> วัน</div>
-          <button class="btn btn-primary btn-block" type="submit" <?= (int)$c['units_remaining'] < 1 ? 'disabled' : '' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
+          <?php $maxRedeem = contract_max_redeem($c); $daysLeft = contract_days_left($c); ?>
+          <div class="field"><label>จำนวนหน่วยที่แลก (แลกได้สูงสุด <?= $maxRedeem ?> M)</label>
+            <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required
+                   data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
+          <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ AI Pro <b data-redeem-days style="color:var(--text)">0</b> วัน · สัญญาเหลือ <?= $daysLeft ?> วัน</div>
+          <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
+          <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
+          <?php if ($maxRedeem < (int)$c['units_remaining']): ?>
+            <div class="faint" style="font-size:11.5px;margin-top:8px">* จำกัดที่ <?= $maxRedeem ?> M เพราะระยะเวลาสิทธิ์ต้องไม่เกินอายุสัญญาที่เหลือ (<?= $daysLeft ?> วัน)</div>
+          <?php endif; ?>
         </form>
       </div>
 

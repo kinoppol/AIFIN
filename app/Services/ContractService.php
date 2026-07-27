@@ -123,8 +123,16 @@ class ContractService
             if ((int) $c['units_remaining'] < $units) {
                 throw new RuntimeException('หน่วยคงเหลือไม่พอสำหรับการแลก');
             }
-            $balance = (int) $c['units_remaining'] - $units;
             $days = $units * (int) $c['unit_days'];
+            // Redeemed access must not outlive the contract: its duration cannot
+            // exceed the days remaining until the (possibly extended) end date.
+            $daysLeft = (int) floor((strtotime($c['end_date']) - strtotime(date('Y-m-d'))) / 86400);
+            if ($days > $daysLeft) {
+                throw new RuntimeException(
+                    "ระยะเวลาสิทธิ์ที่แลก ({$days} วัน) เกินอายุสัญญาที่เหลืออยู่ (" . max(0, $daysLeft) . " วัน)"
+                );
+            }
+            $balance = (int) $c['units_remaining'] - $units;
             $expires = date('Y-m-d', strtotime("+{$days} days"));
 
             Contract::update($contractId, ['units_remaining' => $balance]);

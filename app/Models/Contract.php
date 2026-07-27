@@ -19,17 +19,24 @@ class Contract extends Model
         return $stmt->fetch() ?: null;
     }
 
-    /** Next sequential contract number, e.g. CT-2026-0007. */
+    /**
+     * A hard-to-guess contract number, e.g. CT-2026-7K3QF9. The year stays
+     * visible; the suffix is random (unambiguous alphabet, no 0/O/1/I) and
+     * checked for uniqueness so contract codes can't be enumerated.
+     */
     public static function nextNo(): string
     {
         $year = date('Y');
-        $stmt = static::db()->prepare(
-            "SELECT contract_no FROM contracts WHERE contract_no LIKE ? ORDER BY contract_no DESC LIMIT 1"
-        );
-        $stmt->execute(["CT-{$year}-%"]);
-        $last = $stmt->fetchColumn();
-        $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
-        return sprintf('CT-%s-%04d', $year, $seq);
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $len = strlen($alphabet);
+        do {
+            $rand = '';
+            for ($i = 0; $i < 6; $i++) {
+                $rand .= $alphabet[random_int(0, $len - 1)];
+            }
+            $no = "CT-{$year}-{$rand}";
+        } while (static::findByNo($no) !== null);
+        return $no;
     }
 
     /** Contracts ending within N days that still have units. */

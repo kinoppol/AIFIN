@@ -48,14 +48,29 @@
   });
 })();
 
-// Redeem calculator: units * unitDays = days preview.
-document.addEventListener('input', function (e) {
-  var el = e.target;
-  if (el.matches('[data-redeem-units]')) {
-    var days = (parseInt(el.value, 10) || 0) * (parseInt(el.getAttribute('data-unit-days'), 10) || 30);
-    var out = document.querySelector('[data-redeem-days]');
-    if (out) out.textContent = days.toLocaleString();
+// Redeem calculator + guard: preview days and block redeeming more than the
+// contract's remaining units (server enforces this too; this is friendly UX).
+function refreshRedeem(el) {
+  var unitDays = parseInt(el.getAttribute('data-unit-days'), 10) || 30;
+  var max = parseInt(el.getAttribute('max'), 10);
+  var val = parseInt(el.value, 10) || 0;
+  var form = el.closest('form');
+  var out = form ? form.querySelector('[data-redeem-days]') : null;
+  var warn = form ? form.querySelector('[data-redeem-warn]') : null;
+  var btn = form ? form.querySelector('button[type="submit"]') : null;
+
+  var over = !isNaN(max) && val > max;
+  var invalid = over || val < 1;
+  if (out) out.textContent = (val * unitDays).toLocaleString();
+  if (warn) {
+    warn.style.display = over ? 'block' : 'none';
+    if (over) warn.textContent = 'แลกได้สูงสุด ' + max + ' M (จำกัดด้วยหน่วยคงเหลือ/อายุสัญญาที่เหลือ)';
   }
+  el.setCustomValidity(over ? 'จำนวนหน่วยเกินขีดจำกัดการแลก' : '');
+  if (btn) btn.disabled = invalid;
+}
+document.addEventListener('input', function (e) {
+  if (e.target.matches && e.target.matches('[data-redeem-units]')) refreshRedeem(e.target);
 });
 
 // --- Styled modal system (replaces native alert/confirm) --------------------
@@ -114,7 +129,38 @@ document.addEventListener('input', function (e) {
     opts.mode = 'alert';
     return open(opts);
   };
+
+  // Show arbitrary HTML in a styled modal with a single close button.
+  AIFIN.openHtml = function (html) {
+    var ov = document.createElement('div');
+    ov.className = 'modal-ov';
+    var box = document.createElement('div');
+    box.className = 'modal-box';
+    box.innerHTML = html + '<div class="modal-actions"><button type="button" class="btn btn-primary" data-close>ปิด</button></div>';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    requestAnimationFrame(function () { ov.classList.add('show'); });
+    function close() {
+      ov.classList.remove('show');
+      setTimeout(function () { ov.remove(); }, 180);
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    box.querySelector('[data-close]').addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    document.addEventListener('keydown', onKey);
+  };
 })();
+
+// Open a receipt (or any hidden block) referenced by [data-receipt-open="id"].
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-receipt-open]');
+  if (b) {
+    e.preventDefault();
+    var el = document.getElementById(b.getAttribute('data-receipt-open'));
+    if (el) AIFIN.openHtml(el.innerHTML);
+  }
+});
 
 // Any form/link with [data-confirm] pops the styled modal before proceeding.
 document.addEventListener('submit', function (e) {
