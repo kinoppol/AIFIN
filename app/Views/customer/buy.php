@@ -15,7 +15,7 @@ $unitDays = (int) config('app.unit_days', 30);
          <?= $featured ? 'border:1px solid transparent;background:linear-gradient(160deg,var(--navy),var(--navy1));color:#eaf1ff'
                        : 'border:1px solid var(--border);background:var(--surface);color:var(--text)' ?>">
       <?php if (!empty($p['promo_label'])): ?>
-        <div style="position:absolute;top:14px;right:14px;font:600 11px var(--sans);background:var(--accent2);color:#03251f;border-radius:6px;padding:4px 8px"><?= e($p['promo_label']) ?></div>
+        <div style="display:inline-block;font:600 11px var(--sans);background:var(--accent2);color:#03251f;border-radius:6px;padding:4px 9px;margin-bottom:12px;max-width:100%;line-height:1.45"><?= e($p['promo_label']) ?></div>
       <?php endif; ?>
       <div style="font-weight:600;font-size:16px"><?= e($p['name']) ?></div>
       <div class="mono" style="font-size:40px;font-weight:600;margin-top:14px"><?= (int)$p['units'] ?></div>
