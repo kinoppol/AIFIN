@@ -128,6 +128,7 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
               </div>
               <?php if ($k['status'] === 'active'): ?>
                 <div class="mono muted" style="font-size:11.5px;margin-top:6px;word-break:break-all"><?= e($k['base_url']) ?></div>
+                <div class="faint" style="font-size:11px;margin-top:3px">หมดอายุ <?= $k['expires_at'] ? thai_date($k['expires_at']) : '—' ?></div>
               <?php endif; ?>
             </div>
           <?php endforeach; ?>

@@ -47,7 +47,10 @@ $statusPill = function (string $s): string {
           <div style="margin-top:14px;border:1px solid var(--border);border-radius:11px;background:var(--sunk);padding:12px 14px;display:grid;gap:8px">
             <div><div class="faint" style="font-size:11.5px">BASE URL</div><div class="mono" style="font-size:12.5px;word-break:break-all"><?= e($k['base_url']) ?></div></div>
             <div><div class="faint" style="font-size:11.5px">API Key</div><div class="mono" style="font-size:12.5px;word-break:break-all"><?= e($k['api_key']) ?></div></div>
-            <div class="faint" style="font-size:11.5px">จัดหาเมื่อ <?= $k['provisioned_at'] ? e($k['provisioned_at']) : '—' ?></div>
+            <div style="display:flex;justify-content:space-between;gap:10px">
+              <span class="faint" style="font-size:11.5px">จัดหาเมื่อ <?= $k['provisioned_at'] ? e($k['provisioned_at']) : '—' ?></span>
+              <span class="faint" style="font-size:11.5px">หมดอายุ <?= $k['expires_at'] ? thai_date($k['expires_at']) : '—' ?></span>
+            </div>
           </div>
         <?php endif; ?>
       </div>

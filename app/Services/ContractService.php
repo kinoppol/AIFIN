@@ -422,9 +422,12 @@ class ContractService
         if (trim($apiKey) === '') {
             throw new RuntimeException('กรุณากรอก API Key');
         }
+        // The key is valid for the GPU card's rental period — the contract term.
+        $c = Contract::find((int) $k['contract_id']);
         ApiKey::update($id, [
             'base_url'       => $baseUrl,
             'api_key'        => trim($apiKey),
+            'expires_at'     => $c['end_date'] ?? null,
             'status'         => 'active',
             'provisioned_at' => date('Y-m-d H:i:s'),
         ]);

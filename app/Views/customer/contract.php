@@ -141,6 +141,7 @@ $usedMonths = (int) $c['extension_months_used'];
                     <code class="mono" data-secret style="word-break:break-all;filter:blur(4px)"><?= e($k['api_key']) ?></code>
                     <button type="button" class="btn btn-light btn-sm" data-reveal>แสดง</button>
                   </div>
+                  <div><span class="faint">หมดอายุ:</span> <span class="mono"><?= $k['expires_at'] ? thai_date($k['expires_at']) : '—' ?></span></div>
                 </div>
               <?php endif; ?>
             </div>
