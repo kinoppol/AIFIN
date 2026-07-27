@@ -10,7 +10,7 @@ $unitDays = (int) config('app.unit_days', 30);
   <?php foreach ($packages as $i => $p):
     $featured = ($i === 1);
     $total = (int)$p['units'] * (int)$p['sale_price']; ?>
-    <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);
+    <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;
          <?= $featured ? 'border:1px solid transparent;background:linear-gradient(160deg,var(--navy),var(--navy1));color:#eaf1ff'
                        : 'border:1px solid var(--border);background:var(--surface);color:var(--text)' ?>">
       <?php if (!empty($p['promo_label'])): ?>
@@ -22,7 +22,7 @@ $unitDays = (int) config('app.unit_days', 30);
       <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
       <div style="font-size:16px;font-weight:600"><?= baht($total) ?></div>
       <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย</div>
-      <form method="post" action="<?= e(url('account/buy')) ?>" style="margin-top:20px"
+      <form method="post" action="<?= e(url('account/buy')) ?>" style="margin-top:auto;padding-top:20px"
             data-confirm="ทำสัญญาแพ็กเกจ <?= e($p['name']) ?> (<?= (int)$p['units'] ?> M) มูลค่า <?= e(baht($total)) ?>&#10;ระบบจะออกสัญญาอายุ 1 ปีและเติมหน่วยเข้าคลังทันที"
             data-confirm-title="ยืนยันการทำสัญญา" data-confirm-ok="ทำสัญญา">
         <?= csrf_field() ?>
