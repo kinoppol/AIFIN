@@ -99,6 +99,10 @@ textarea.input{resize:vertical;min-height:72px}
 .modal-title{font-size:17px;font-weight:600;margin:0 0 6px}
 .modal-msg{font-size:14px;line-height:1.65;color:var(--muted);margin:0;white-space:pre-line}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal-x{border:0;background:transparent;color:var(--muted);cursor:pointer;width:30px;height:30px;
+  border-radius:8px;display:grid;place-items:center;flex:none;margin:-4px -4px 0 0}
+.modal-x:hover{background:var(--surface2);color:var(--text)}
 
 /* Native <dialog> (admin create/edit forms) — match the styled modals. */
 dialog{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--text);

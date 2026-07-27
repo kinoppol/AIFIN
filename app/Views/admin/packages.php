@@ -36,10 +36,13 @@
 </div>
 
 <!-- create package -->
-<dialog id="new-pack" class="card" style="border:1px solid var(--border);max-width:460px;width:92%;padding:0;color:var(--text)">
+<dialog id="new-pack" data-persistent class="card" style="border:1px solid var(--border);max-width:460px;width:92%;padding:0;color:var(--text)">
   <form method="post" action="<?= e(url('admin/packages')) ?>" style="padding:22px">
     <?= csrf_field() ?>
-    <h3 style="margin:0 0 16px;font-size:17px">สร้างแพ็กเกจใหม่</h3>
+    <div class="modal-head" style="margin-bottom:16px">
+      <h3 style="margin:0;font-size:17px">สร้างแพ็กเกจใหม่</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
     <div style="display:flex;gap:12px">
       <div class="field" style="flex:1"><label>รหัส (code)</label><input class="input" name="code" required></div>
       <div class="field" style="flex:2"><label>ชื่อแพ็กเกจ</label><input class="input" name="name" required></div>
@@ -67,11 +70,14 @@
 </dialog>
 
 <!-- edit price -->
-<dialog id="edit-pack" class="card" style="border:1px solid var(--border);max-width:400px;width:92%;padding:0;color:var(--text)">
+<dialog id="edit-pack" data-persistent class="card" style="border:1px solid var(--border);max-width:400px;width:92%;padding:0;color:var(--text)">
   <form method="post" action="<?= e(url('admin/packages/update')) ?>" style="padding:22px">
     <?= csrf_field() ?>
     <input type="hidden" name="id" id="ep-id">
-    <h3 style="margin:0 0 4px;font-size:17px">แก้ราคาแพ็กเกจ</h3>
+    <div class="modal-head">
+      <h3 style="margin:0 0 4px;font-size:17px">แก้ราคาแพ็กเกจ</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
     <p class="muted" id="ep-name" style="margin:0 0 16px;font-size:13px"></p>
     <div class="field"><label>ราคาขาย/M (บาท)</label><input class="input" type="number" name="sale_price" id="ep-sale" min="0" required></div>
     <div class="field"><label>ป้ายโปรฯ</label><input class="input" name="promo_label" id="ep-promo"></div>

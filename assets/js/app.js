@@ -178,13 +178,28 @@ document.addEventListener('submit', function (e) {
   }
 }, true);
 
-// Close native <dialog> modals when clicking the backdrop (outside the box).
+// Close native <dialog> modals when clicking the backdrop — UNLESS the dialog
+// is marked [data-persistent] (form dialogs that must be closed deliberately).
 document.addEventListener('click', function (e) {
   var dlg = e.target;
-  if (dlg.tagName === 'DIALOG' && dlg.open) {
+  if (dlg.tagName === 'DIALOG' && dlg.open && !dlg.hasAttribute('data-persistent')) {
     var r = dlg.getBoundingClientRect();
     var inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
     if (!inside) dlg.close();
+  }
+});
+
+// Block the Escape key from closing persistent form dialogs.
+document.addEventListener('cancel', function (e) {
+  if (e.target.matches && e.target.matches('dialog[data-persistent]')) e.preventDefault();
+}, true);
+
+// Explicit close button inside a dialog.
+document.addEventListener('click', function (e) {
+  var x = e.target.closest && e.target.closest('[data-dialog-close]');
+  if (x) {
+    var d = x.closest('dialog');
+    if (d) d.close();
   }
 });
 
