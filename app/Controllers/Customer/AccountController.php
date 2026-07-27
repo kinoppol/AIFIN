@@ -19,7 +19,7 @@ class AccountController extends Controller
         $this->requireAuth();
         $userId = Auth::id();
         $this->render('customer/dashboard', [
-            'title'     => 'บัญชีของฉัน',
+            'title'     => 'สัญญาของฉัน',
             'contracts' => Contract::forUser($userId),
             'packages'  => Package::sellable(),
         ], 'layouts/customer');

@@ -24,7 +24,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>
         <?php if ($loggedIn): ?>
-          <a class="btn btn-primary btn-sm" href="<?= e($primaryHref) ?>"><?= icon('grid', 15) ?><?= $isAdmin ? 'แผงผู้ดูแล' : 'บัญชีของฉัน' ?></a>
+          <a class="btn btn-primary btn-sm" href="<?= e($primaryHref) ?>"><?= icon('grid', 15) ?><?= $isAdmin ? 'แผงผู้ดูแล' : 'สัญญาของฉัน' ?></a>
         <?php else: ?>
           <a class="btn btn-light btn-sm" href="<?= e(url('login')) ?>"><?= icon('login', 15) ?>เข้าสู่ระบบ</a>
           <a class="btn btn-primary btn-sm" href="<?= e(url('register')) ?>"><?= icon('user-plus', 15) ?>ลงทะเบียน</a>

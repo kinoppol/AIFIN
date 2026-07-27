@@ -2,7 +2,7 @@
 /** @var array $packages @var array $contracts */
 $unitDays = (int) config('app.unit_days', 30);
 ?>
-<a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับบัญชีของฉัน</a>
+<a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับสัญญาของฉัน</a>
 <h1 style="margin:10px 0 4px;font-size:26px">ซื้อหน่วย AI Pro</h1>
 <p class="muted" style="margin:0 0 24px">เลือกแพ็กเกจ ระบบจะออกสัญญาอายุ 1 ปีและเติมหน่วยเข้าคลังทันที (1 M = <?= $unitDays ?> วัน)</p>
 

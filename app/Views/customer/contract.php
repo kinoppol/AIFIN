@@ -8,7 +8,7 @@ $openExts   = array_filter($exts, fn($x) => in_array($x['status'], ['pending', '
 // Extension can be requested only inside the renewal window and with quota left.
 $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
 ?>
-<a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับบัญชีของฉัน</a>
+<a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับสัญญาของฉัน</a>
 
 <div class="card-navy" style="padding:26px;margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center">
   <div>
