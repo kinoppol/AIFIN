@@ -25,6 +25,17 @@ class AccountController extends Controller
         ], 'layouts/customer');
     }
 
+    public function ai(): void
+    {
+        $this->requireAuth();
+        $userId = Auth::id();
+        $this->render('customer/ai', [
+            'title'   => 'AI ของฉัน',
+            'seats'   => Redemption::forUser($userId),
+            'apikeys' => ApiKey::forUser($userId),
+        ], 'layouts/customer');
+    }
+
     public function buyForm(): void
     {
         $this->requireAuth();

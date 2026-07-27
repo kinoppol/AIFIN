@@ -2,7 +2,7 @@
 <div class="page-cols">
   <div class="card card-pad" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
     <div class="muted" style="font-size:13.5px;line-height:1.7">ปรับได้เฉพาะ “ราคาต่อหน่วย” เท่านั้น — มูลค่าการใช้งานของ 1 หน่วยถูกล็อกไว้ที่ <b style="color:var(--text)"><?= $unitDays ?> วัน</b> ในระดับระบบ</div>
-    <button class="btn btn-primary" type="button" onclick="document.getElementById('new-pack').showModal()">+ สร้างแพ็กเกจ</button>
+    <button class="btn btn-primary" type="button" onclick="document.getElementById('new-pack').showModal()"><?= icon('plus') ?>สร้างแพ็กเกจ</button>
   </div>
 
   <div class="card" style="overflow:hidden">

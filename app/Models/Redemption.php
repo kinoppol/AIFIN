@@ -50,6 +50,18 @@ class Redemption extends Model
         return $stmt->fetchAll();
     }
 
+    /** All of a customer's redemptions across every contract (with contract_no). */
+    public static function forUser(int $userId): array
+    {
+        $stmt = static::db()->prepare(
+            "SELECT r.*, c.contract_no FROM redemptions r
+             JOIN contracts c ON c.id = r.contract_id
+             WHERE c.user_id = ? ORDER BY r.id DESC"
+        );
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
+
     /** Successful redemptions = provisioned seats (bound emails). */
     public static function seatsForContract(int $contractId): array
     {

@@ -10,13 +10,14 @@
       </a>
       <div style="display:flex;gap:16px;margin-left:8px;font-size:14px">
         <a href="<?= e(url('account')) ?>" style="color:var(--muted)">บัญชีของฉัน</a>
+        <a href="<?= e(url('account/ai')) ?>" style="color:var(--muted)">AI ของฉัน</a>
         <a href="<?= e(url('account/buy')) ?>" style="color:var(--muted)">ซื้อหน่วย</a>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>
         <span class="faint" style="font-size:13px"><?= e($user['name'] ?? '') ?></span>
         <form method="post" action="<?= e(url('logout')) ?>" style="margin:0"><?= csrf_field() ?>
-          <button class="btn btn-light btn-sm" type="submit">ออกจากระบบ</button>
+          <button class="btn btn-light btn-sm" type="submit"><?= icon('logout', 15) ?>ออกจากระบบ</button>
         </form>
       </div>
     </div>

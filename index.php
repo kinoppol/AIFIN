@@ -38,6 +38,7 @@ $router->post('logout',   [AuthController::class, 'logout']);
 
 // Customer area
 $router->get('account',          [AccountController::class, 'index']);
+$router->get('account/ai',       [AccountController::class, 'ai']);
 $router->get('account/buy',      [AccountController::class, 'buyForm']);
 $router->post('account/buy',     [AccountController::class, 'buy']);
 $router->get('account/contract', [AccountController::class, 'contract']);

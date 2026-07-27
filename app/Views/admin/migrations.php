@@ -6,7 +6,7 @@
       <?php if ($pending): ?><br><b style="color:var(--warn)">มี <?= count($pending) ?> migration ที่ยังไม่ถูกรัน</b><?php else: ?><br><b style="color:var(--ok)">ฐานข้อมูลเป็นเวอร์ชันล่าสุด</b><?php endif; ?>
     </div>
     <form method="post" action="<?= e(url('admin/migrations/run')) ?>" data-confirm="รัน migration ที่รอดำเนินการทั้งหมดตอนนี้?&#10;การเปลี่ยนโครงสร้างฐานข้อมูลควรสำรองข้อมูลก่อน" data-confirm-title="ยืนยันการรัน Migration" data-confirm-ok="รันเลย"><?= csrf_field() ?>
-      <button class="btn btn-primary" type="submit" <?= $pending ? '' : 'disabled' ?>>รัน migration ที่รอดำเนินการ</button>
+      <button class="btn btn-primary" type="submit" <?= $pending ? '' : 'disabled' ?>><?= icon('database', 15) ?>รัน migration ที่รอดำเนินการ</button>
     </form>
   </div>
 

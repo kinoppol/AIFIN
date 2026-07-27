@@ -38,7 +38,7 @@ $statusPill = function (string $s): string {
             <div class="field"><label>BASE URL</label><input class="input mono" type="url" name="base_url" placeholder="https://gpu.example.com/v1" required></div>
             <div class="field"><label>API Key</label><input class="input mono" type="text" name="api_key" placeholder="sk-..." required></div>
             <div style="display:flex;gap:9px">
-              <button class="btn btn-primary" style="flex:1" type="submit">ส่งมอบให้ลูกค้า</button>
+              <button class="btn btn-primary" style="flex:1" type="submit"><?= icon('send', 15) ?>ส่งมอบให้ลูกค้า</button>
               <button class="btn btn-danger" type="submit" formaction="<?= e(url('admin/gpu/status')) ?>" name="status" value="failed"
                       formnovalidate data-confirm="ทำเครื่องหมายว่าล้มเหลวและคืนการ์ดให้ลูกค้า?" data-confirm-title="ยืนยัน" data-confirm-ok="ล้มเหลว" data-confirm-danger>ล้มเหลว</button>
             </div>

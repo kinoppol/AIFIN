@@ -52,7 +52,7 @@ $nav = function (string $key) use ($active) {
             <div class="faint">ผู้ดูแลระบบ</div>
           </div>
           <form method="post" action="<?= e(url('logout')) ?>" style="margin:0"><?= csrf_field() ?>
-            <button class="btn btn-ghost btn-sm" type="submit">ออก</button>
+            <button class="btn btn-ghost btn-sm" type="submit"><?= icon('logout', 15) ?>ออก</button>
           </form>
         </div>
       </div>

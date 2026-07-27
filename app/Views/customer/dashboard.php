@@ -9,7 +9,7 @@ $totalGpu = array_sum(array_map(fn($c) => (int)($c['gpu_remaining'] ?? 0), $cont
     <h1 style="margin:0;font-size:26px">บัญชีของฉัน</h1>
     <p class="muted" style="margin:6px 0 0">จัดการสัญญาและคลังหน่วย AI Pro ของคุณ</p>
   </div>
-  <a class="btn btn-primary" href="<?= e(url('account/buy')) ?>">+ ซื้อหน่วยเพิ่ม</a>
+  <a class="btn btn-primary" href="<?= e(url('account/buy')) ?>"><?= icon('cart') ?>ซื้อหน่วยเพิ่ม</a>
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px" class="c-kpi">

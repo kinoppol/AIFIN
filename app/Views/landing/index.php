@@ -24,10 +24,10 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>
         <?php if ($loggedIn): ?>
-          <a class="btn btn-primary btn-sm" href="<?= e($primaryHref) ?>"><?= $isAdmin ? 'แผงผู้ดูแล' : 'บัญชีของฉัน' ?></a>
+          <a class="btn btn-primary btn-sm" href="<?= e($primaryHref) ?>"><?= icon('grid', 15) ?><?= $isAdmin ? 'แผงผู้ดูแล' : 'บัญชีของฉัน' ?></a>
         <?php else: ?>
-          <a class="btn btn-light btn-sm" href="<?= e(url('login')) ?>">เข้าสู่ระบบ</a>
-          <a class="btn btn-primary btn-sm" href="<?= e(url('register')) ?>">ลงทะเบียน</a>
+          <a class="btn btn-light btn-sm" href="<?= e(url('login')) ?>"><?= icon('login', 15) ?>เข้าสู่ระบบ</a>
+          <a class="btn btn-primary btn-sm" href="<?= e(url('register')) ?>"><?= icon('user-plus', 15) ?>ลงทะเบียน</a>
         <?php endif; ?>
       </div>
     </div>
@@ -47,8 +47,8 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
         <h1 style="margin:20px 0 0;font-size:52px;line-height:1.12;font-weight:700;letter-spacing:-.03em">ซื้อสิทธิ์ AI Pro<br>ล่วงหน้าเป็น<span style="background:linear-gradient(100deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent">สัญญา</span></h1>
         <p style="margin:20px 0 0;max-width:520px;font-size:16.5px;line-height:1.7;color:#a9bcd8">ล็อกราคาวันนี้ เก็บหน่วย AI Pro ไว้ในบัญชีของคุณ แล้วค่อยแลกเป็นสิทธิ์ใช้งานจริงเมื่อพร้อม — สัญญาอายุ 1 ปี ขอขยายเพิ่มได้สูงสุด 6 เดือน</p>
         <div style="display:flex;gap:12px;margin-top:30px;flex-wrap:wrap">
-          <a class="btn" style="background:#fff;color:#0d1c34;padding:14px 24px;font-size:15px" href="<?= e($primaryHref) ?>">เปิดบัญชีสัญญา</a>
-          <a class="btn" style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#eaf1ff;padding:14px 24px;font-size:15px" href="#pricing">ดูตารางราคา</a>
+          <a class="btn" style="background:#fff;color:#0d1c34;padding:14px 24px;font-size:15px" href="<?= e($primaryHref) ?>"><?= icon('user-plus', 17) ?>เปิดบัญชีสัญญา</a>
+          <a class="btn" style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#eaf1ff;padding:14px 24px;font-size:15px" href="#pricing"><?= icon('arrow-right', 17) ?>ดูตารางราคา</a>
         </div>
         <div style="display:flex;gap:40px;margin-top:44px;flex-wrap:wrap">
           <div><div class="mono" style="font-size:26px;font-weight:600">1 ปี</div><div style="font-size:12.5px;color:#8ba1c4;margin-top:4px">อายุสัญญามาตรฐาน</div></div>
@@ -148,7 +148,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
           <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
           <div style="font-size:15px;font-weight:600"><?= baht($total) ?></div>
           <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย<?= $p['note'] ? ' · ' . e($p['note']) : '' ?></div>
-          <a class="btn btn-block" style="margin-top:auto;<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--sunk);color:var(--text);border:1px solid var(--border)' ?>" href="<?= e($primaryHref) ?>">เริ่มทำสัญญา</a>
+          <a class="btn btn-block" style="margin-top:auto;<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--sunk);color:var(--text);border:1px solid var(--border)' ?>" href="<?= e($primaryHref) ?>"><?= icon('cart', 15) ?>เริ่มทำสัญญา</a>
         </div>
       <?php endforeach; ?>
     </div>
@@ -173,7 +173,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
           <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
           <div style="font-size:15px;font-weight:600"><?= baht($gt) ?></div>
           <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($g['sale_price']) ?> ต่อการ์ด</div>
-          <a class="btn btn-block" style="margin-top:auto;background:var(--sunk);color:var(--text);border:1px solid var(--border)" href="<?= e($primaryHref) ?>">เริ่มเช่า GPU</a>
+          <a class="btn btn-block" style="margin-top:auto;background:var(--sunk);color:var(--text);border:1px solid var(--border)" href="<?= e($primaryHref) ?>"><?= icon('key', 15) ?>เริ่มเช่า GPU</a>
         </div>
       <?php endforeach; ?>
     </div>

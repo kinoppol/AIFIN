@@ -1,6 +1,12 @@
 <?php
 /** @var array $c @var array $ledger @var array $seats @var array $redeems @var array $exts @var int $maxExt */
 $usedMonths = (int) $c['extension_months_used'];
+$daysLeft   = contract_days_left($c);
+$extWindow  = (int) config('app.extension_window_days', 180);
+$quotaLeft  = $maxExt - $usedMonths;
+$openExts   = array_filter($exts, fn($x) => in_array($x['status'], ['pending', 'reviewing'], true));
+// Extension can be requested only inside the renewal window and with quota left.
+$canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
 ?>
 <a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับบัญชีของฉัน</a>
 
@@ -8,11 +14,24 @@ $usedMonths = (int) $c['extension_months_used'];
   <div>
     <div class="mono" style="font-size:12px;color:#8ba1c4;letter-spacing:.1em"><?= e($c['contract_no']) ?></div>
     <div style="font-size:22px;font-weight:600;margin-top:6px"><?= e($c['customer_name']) ?></div>
-    <div style="display:flex;gap:22px;margin-top:16px;font-size:13px;color:#a9bcd8;flex-wrap:wrap">
+    <div style="display:flex;gap:22px;margin-top:16px;font-size:13px;color:#a9bcd8;flex-wrap:wrap;align-items:flex-start">
       <div><div style="color:#7b90b3;font-size:11.5px">เริ่มสัญญา</div><?= thai_date($c['start_date']) ?></div>
-      <div><div style="color:#7b90b3;font-size:11.5px">สิ้นสุด</div><?= thai_date($c['end_date']) ?></div>
+      <div>
+        <div style="color:#7b90b3;font-size:11.5px">สิ้นสุด</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span><?= thai_date($c['end_date']) ?></span>
+          <?php if ($canExtend): ?>
+            <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,.16);color:#eaf1ff;border:1px solid rgba(255,255,255,.22);padding:4px 10px" onclick="document.getElementById('ext-modal').showModal()"><?= icon('calendar-plus', 14) ?>ขอขยายอายุ</button>
+          <?php elseif ($quotaLeft > 0 && $daysLeft >= $extWindow): ?>
+            <span style="font-size:11px;color:#7b90b3">(ขอขยายได้เมื่อเหลือ &lt; <?= $extWindow ?> วัน · เหลือ <?= $daysLeft ?> วัน)</span>
+          <?php endif; ?>
+        </div>
+      </div>
       <div><div style="color:#7b90b3;font-size:11.5px">ขยายแล้ว</div><?= $usedMonths ?>/<?= $maxExt ?> เดือน</div>
     </div>
+    <?php if ($openExts): ?>
+      <div style="margin-top:12px;font-size:12px;color:#e2b23c">มีคำขอขยายอายุรออนุมัติ <?= count($openExts) ?> รายการ</div>
+    <?php endif; ?>
   </div>
   <div style="text-align:right">
     <?php $hasM = (int)$c['units_total'] > 0; $hasG = (int)$c['gpu_total'] > 0; ?>
@@ -50,35 +69,13 @@ $usedMonths = (int) $c['extension_months_used'];
           <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
         <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
         <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
-        <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>>ส่งคำขอแลก</button>
+        <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>><?= icon('redeem', 15) ?>ส่งคำขอแลก</button>
         <?php if ($expired): ?>
           <div class="faint" style="font-size:11.5px;margin-top:8px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
         <?php else: ?>
           <div class="faint" style="font-size:11.5px;margin-top:8px">* แลกได้ครั้งละไม่เกิน <?= $cap ?> หน่วย · สิทธิ์การใช้งานคงอยู่แม้สัญญาหมดอายุ</div>
         <?php endif; ?>
       </form>
-    </div>
-
-    <!-- request extension -->
-    <div class="card card-pad">
-      <div style="font-weight:600;font-size:15px">ขอขยายอายุสัญญา</div>
-      <div class="muted" style="font-size:12.5px;margin-top:4px">ใช้ไป <?= $usedMonths ?> จาก <?= $maxExt ?> เดือน</div>
-      <?php if ($usedMonths < $maxExt): ?>
-        <form method="post" action="<?= e(url('account/extend')) ?>" style="margin-top:12px"
-              data-confirm="ยืนยันส่งคำขอขยายอายุสัญญาตามจำนวนเดือนที่ระบุ?" data-confirm-title="ยืนยันคำขอขยายอายุ" data-confirm-ok="ส่งคำขอ">
-          <?= csrf_field() ?>
-          <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
-          <div class="field"><label>จำนวนเดือน (สูงสุด <?= $maxExt - $usedMonths ?>)</label><input class="input" type="number" name="months" min="1" max="<?= $maxExt - $usedMonths ?>" required></div>
-          <div class="field"><label>เหตุผล</label><textarea class="input" name="reason" required></textarea></div>
-          <button class="btn btn-light btn-block" type="submit">ส่งคำขอขยายอายุ</button>
-        </form>
-      <?php else: ?>
-        <div class="faint" style="font-size:12.5px;margin-top:10px">ใช้โควตาการขยายครบ <?= $maxExt ?> เดือนแล้ว</div>
-      <?php endif; ?>
-      <?php $openExts = array_filter($exts, fn($x)=>in_array($x['status'],['pending','reviewing'],true)); ?>
-      <?php if ($openExts): ?>
-        <div class="muted" style="font-size:12.5px;margin-top:12px">คำขอที่รออนุมัติ: <?= count($openExts) ?> รายการ</div>
-      <?php endif; ?>
     </div>
 
     <!-- redemptions & provisioned seats -->
@@ -119,7 +116,7 @@ $usedMonths = (int) $c['extension_months_used'];
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
           <div class="field"><label>ป้ายกำกับ (ไม่บังคับ)</label><input class="input" name="label" placeholder="เช่น production, dev"></div>
-          <button class="btn btn-primary btn-block" type="submit">ขอสร้าง API Key</button>
+          <button class="btn btn-primary btn-block" type="submit"><?= icon('key', 15) ?>ขอสร้าง API Key</button>
         </form>
       <?php else: ?>
         <div class="faint" style="font-size:12.5px;margin-top:10px">การ์ด GPU ถูกใช้ครบแล้ว — ซื้อเพิ่มได้ที่หน้า “ซื้อหน่วย”</div>
@@ -153,4 +150,24 @@ $usedMonths = (int) $c['extension_months_used'];
 
   </div>
 </div>
+<?php if ($canExtend): ?>
+<dialog id="ext-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/extend')) ?>" style="padding:22px"
+        data-confirm="ยืนยันส่งคำขอขยายอายุสัญญาตามจำนวนเดือนที่ระบุ?" data-confirm-title="ยืนยันคำขอขยายอายุ" data-confirm-ok="ส่งคำขอ">
+    <?= csrf_field() ?>
+    <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+    <div class="modal-head" style="margin-bottom:4px">
+      <h3 style="margin:0;font-size:17px">ขอขยายอายุสัญญา</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px">สัญญาเหลือ <?= $daysLeft ?> วัน · ใช้โควตาไป <?= $usedMonths ?> จาก <?= $maxExt ?> เดือน</p>
+    <div class="field"><label>จำนวนเดือน (สูงสุด <?= $quotaLeft ?>)</label><input class="input" type="number" name="months" min="1" max="<?= $quotaLeft ?>" required></div>
+    <div class="field"><label>เหตุผล</label><textarea class="input" name="reason" required></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button type="submit" class="btn btn-primary">ส่งคำขอ</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
 <style>@media(max-width:800px){.cc-row{grid-template-columns:1fr!important}}</style>

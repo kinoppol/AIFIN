@@ -24,6 +24,18 @@ class ApiKey extends Model
         return $stmt->fetchAll();
     }
 
+    /** All of a customer's API keys across every contract (with contract_no). */
+    public static function forUser(int $userId): array
+    {
+        $stmt = static::db()->prepare(
+            "SELECT k.*, c.contract_no FROM api_keys k
+             JOIN contracts c ON c.id = k.contract_id
+             WHERE c.user_id = ? ORDER BY k.id DESC"
+        );
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
+
     /** Provisioning queue with contract/customer info. */
     public static function queue(): array
     {

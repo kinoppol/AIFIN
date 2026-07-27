@@ -217,6 +217,12 @@ class ContractService
         if (!$c) {
             throw new RuntimeException('ไม่พบสัญญา');
         }
+        // Extensions can only be requested inside the renewal window.
+        $window = (int) Config::get('app.extension_window_days', 180);
+        $daysLeft = (int) floor((strtotime($c['end_date']) - strtotime(date('Y-m-d'))) / 86400);
+        if ($daysLeft >= $window) {
+            throw new RuntimeException("ขอขยายอายุได้เมื่อสัญญาเหลือน้อยกว่า {$window} วันเท่านั้น");
+        }
         $used = (int) $c['extension_months_used'];
         $overQuota = ($used + $months) > $this->maxExtension();
         $newEnd = $overQuota ? null : date('Y-m-d', strtotime("{$c['end_date']} +{$months} months"));

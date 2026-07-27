@@ -19,6 +19,9 @@ return [
         'max_extension_months' => 6,
         // Max units a customer can redeem in a single request.
         'max_redeem_units'  => 12,
+        // Extension requests are only allowed when fewer than this many days
+        // remain on the contract.
+        'extension_window_days' => 180,
     ],
     'db' => [
         'host'    => '127.0.0.1',

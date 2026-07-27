@@ -9,7 +9,7 @@
       <span class="muted" style="padding:9px 14px">หมดอายุ <?= $counts['expired'] ?></span>
     </div>
     <div style="margin-left:auto;display:flex;gap:10px">
-      <button class="btn btn-primary" type="button" onclick="document.getElementById('new-contract').showModal()">+ สร้างสัญญา</button>
+      <button class="btn btn-primary" type="button" onclick="document.getElementById('new-contract').showModal()"><?= icon('plus') ?>สร้างสัญญา</button>
     </div>
   </div>
 

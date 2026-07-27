@@ -14,7 +14,7 @@
     <label for="password">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label>
     <input class="input" type="password" id="password" name="password" required minlength="6">
   </div>
-  <button class="btn btn-primary btn-block" type="submit">สร้างบัญชี</button>
+  <button class="btn btn-primary btn-block" type="submit"><?= icon('user-plus') ?>สร้างบัญชี</button>
 </form>
 <p class="muted" style="text-align:center;margin:16px 0 0;font-size:13px">
   มีบัญชีอยู่แล้ว? <a href="<?= e(url('login')) ?>">เข้าสู่ระบบ</a>

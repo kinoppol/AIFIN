@@ -27,7 +27,7 @@ $unitDays = (int) config('app.unit_days', 30);
             data-confirm-title="ยืนยันการทำสัญญา" data-confirm-ok="ทำสัญญา">
         <?= csrf_field() ?>
         <input type="hidden" name="package_id" value="<?= (int)$p['id'] ?>">
-        <button class="btn btn-block" type="submit" style="<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--navy);color:#fff' ?>">ทำสัญญาแพ็กเกจนี้</button>
+        <button class="btn btn-block" type="submit" style="<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--navy);color:#fff' ?>"><?= icon('cart', 15) ?>ทำสัญญาแพ็กเกจนี้</button>
       </form>
     </div>
   <?php endforeach; ?>
@@ -55,7 +55,7 @@ $unitDays = (int) config('app.unit_days', 30);
               data-confirm="ทำสัญญา GPU แพ็กเกจ <?= e($g['name']) ?> (<?= (int)$g['units'] ?> การ์ด) มูลค่า <?= e(baht($gtotal)) ?>?" data-confirm-title="ยืนยันการเช่า GPU" data-confirm-ok="ทำสัญญา">
           <?= csrf_field() ?>
           <input type="hidden" name="package_id" value="<?= (int)$g['id'] ?>">
-          <button class="btn btn-primary btn-block" type="submit">เช่าแพ็กเกจนี้</button>
+          <button class="btn btn-primary btn-block" type="submit"><?= icon('key', 15) ?>เช่าแพ็กเกจนี้</button>
         </form>
       </div>
     <?php endforeach; ?>
