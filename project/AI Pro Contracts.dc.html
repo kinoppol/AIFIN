@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#f2f5fa; --surface:#ffffff; --surface2:#eaeff7; --sunk:#f7f9fc;
+--text:#0d1a2e; --muted:#5c6c84; --faint:#8d9bb0; --border:#dde4ef;
+--navy:#12294b; --navy1:#0d1c34;
+--accent:#2f6dff; --accent2:#00b39a; --warn:#c07a00; --danger:#c8443a; --ok:#0e8a63;
+--shadow:0 1px 2px rgba(16,32,60,.06),0 8px 24px rgba(16,32,60,.06);
+--side:#0d1c34; --side2:#16294a;
+}
+@media (prefers-color-scheme: dark){
+:root{--bg:#060b14; --surface:#0d1727; --surface2:#152540; --sunk:#0a1220;
+--text:#e9eff8; --muted:#93a4bf; --faint:#6b7d99; --border:#1d2b44;
+--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+--side:#08111f; --side2:#12233d;}
+}
+html[data-theme="light"]{--bg:#f2f5fa;--surface:#ffffff;--surface2:#eaeff7;--sunk:#f7f9fc;--text:#0d1a2e;--muted:#5c6c84;--faint:#8d9bb0;--border:#dde4ef;--shadow:0 1px 2px rgba(16,32,60,.06),0 8px 24px rgba(16,32,60,.06);--side:#0d1c34;--side2:#16294a;}
+html[data-theme="dark"]{--bg:#060b14;--surface:#0d1727;--surface2:#152540;--sunk:#0a1220;--text:#e9eff8;--muted:#93a4bf;--faint:#6b7d99;--border:#1d2b44;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);--side:#08111f;--side2:#12233d;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent2)}
+::selection{background:var(--accent);color:#fff}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes sweep{0%{opacity:.25}50%{opacity:.7}100%{opacity:.25}}
+</style>
+</helmet>
+
+<sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh;background:var(--bg)">
+
+  <div style="position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--border)">
+    <div style="max-width:1180px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:28px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(140deg,var(--accent),var(--accent2))"></div>
+        <span style="font-weight:700;letter-spacing:-.02em;font-size:16px">AIPRO&thinsp;Contracts</span>
+      </div>
+      <div style="display:flex;gap:22px;font-size:14px;color:var(--muted);margin-left:8px">
+        <a href="#how" style="color:inherit">วิธีการทำงาน</a>
+        <a href="#rules" style="color:inherit">กติกาสัญญา</a>
+        <a href="#pricing" style="color:inherit">ราคา</a>
+        <a href="#faq" style="color:inherit">คำถามที่พบบ่อย</a>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <button onClick="{{ cycleTheme }}" style="border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:9px;padding:7px 12px;font:500 12.5px 'IBM Plex Sans Thai';cursor:pointer">{{ themeLabel }}</button>
+        <button onClick="{{ goAdmin }}" style="border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:9px;padding:8px 14px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer">เข้าสู่ระบบ</button>
+        <button onClick="{{ goAdmin }}" style="border:0;background:var(--navy);color:#fff;border-radius:9px;padding:9px 16px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer">ลงทะเบียน</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:relative;overflow:hidden;background:linear-gradient(180deg,var(--navy1),var(--navy) 60%,var(--navy1));color:#eaf1ff">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(120% 90% at 50% 0%,#000 20%,transparent 75%)"></div>
+    <div style="position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:900px;height:520px;background:radial-gradient(closest-side,rgba(47,109,255,.45),transparent);filter:blur(20px);animation:sweep 7s ease-in-out infinite"></div>
+    <canvas ref="{{ netRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.85;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)"></canvas>
+    <div style="position:relative;max-width:1180px;margin:0 auto;padding:96px 28px 88px;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:99px;padding:6px 13px;font-size:12.5px;color:#b8ccff">
+          <span style="width:6px;height:6px;border-radius:99px;background:var(--accent2)"></span>
+          1 หน่วย (M) = สิทธิ์ AI แบบ Pro 30 วัน — เสมอ
+        </div>
+        <h1 style="margin:20px 0 0;font-size:52px;line-height:1.12;font-weight:700;letter-spacing:-.03em;text-wrap:pretty">ซื้อสิทธิ์ AI Pro<br>ล่วงหน้าเป็น<span style="background:linear-gradient(100deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent">สัญญา</span></h1>
+        <p style="margin:20px 0 0;max-width:520px;font-size:16.5px;line-height:1.7;color:#a9bcd8;text-wrap:pretty">ล็อกราคาวันนี้ เก็บหน่วย AI Pro ไว้ในบัญชีของคุณ แล้วค่อยแลกเป็นสิทธิ์ใช้งานจริงเมื่อพร้อม — สัญญาอายุ 1 ปี ขอขยายเพิ่มได้สูงสุด 6 เดือน</p>
+        <div style="display:flex;gap:12px;margin-top:30px">
+          <button onClick="{{ goAdmin }}" style="border:0;background:#fff;color:#0d1c34;border-radius:11px;padding:14px 24px;font:600 15px 'IBM Plex Sans Thai';cursor:pointer">เปิดบัญชีสัญญา</button>
+          <button onClick="{{ goPricing }}" style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#eaf1ff;border-radius:11px;padding:14px 24px;font:600 15px 'IBM Plex Sans Thai';cursor:pointer">ดูตารางราคา</button>
+        </div>
+        <div style="display:flex;gap:40px;margin-top:44px">
+          <div><div style="font:600 26px 'JetBrains Mono',monospace">1 ปี</div><div style="font-size:12.5px;color:#8ba1c4;margin-top:4px">อายุสัญญามาตรฐาน</div></div>
+          <div><div style="font:600 26px 'JetBrains Mono',monospace">+6 ด.</div><div style="font-size:12.5px;color:#8ba1c4;margin-top:4px">ขยายได้สูงสุด</div></div>
+          <div><div style="font:600 26px 'JetBrains Mono',monospace">30 วัน</div><div style="font-size:12.5px;color:#8ba1c4;margin-top:4px">ต่อ 1 หน่วย M</div></div>
+        </div>
+      </div>
+      <div style="animation:floaty 9s ease-in-out infinite">
+        <div style="border:1px solid rgba(255,255,255,.14);background:rgba(9,18,34,.72);border-radius:18px;padding:22px;box-shadow:0 30px 70px rgba(0,0,0,.45)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12.5px;color:#8ba1c4;letter-spacing:.06em">คลังหน่วยของบัญชี</span>
+            <span style="font:600 11px 'JetBrains Mono',monospace;color:#b8ccff;border:1px solid rgba(255,255,255,.18);padding:3px 8px;border-radius:6px">CT-2026-0148</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-top:14px">
+            <span style="font:600 46px 'JetBrains Mono',monospace;letter-spacing:-.02em">144</span>
+            <span style="font-size:18px;color:#8ba1c4">M คงเหลือ</span>
+          </div>
+          <div style="height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:14px">
+            <div style="height:100%;width:60%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#8ba1c4;margin-top:8px"><span>แลกไปแล้ว 96 M</span><span>ทั้งหมด 240 M</span></div>
+          <div style="height:1px;background:rgba(255,255,255,.12);margin:18px 0"></div>
+          <div style="display:grid;gap:10px">
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#8ba1c4">แลก 12 M → ops@sinnovate.co</span><span style="color:var(--accent2)">สำเร็จ</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#8ba1c4">แลก 6 M → data@sinnovate.co</span><span style="color:#e2b23c">กำลังจัดหาสิทธิ์</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#8ba1c4">สัญญาหมดอายุ</span><span>11 ม.ค. 2027</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="how" style="max-width:1180px;margin:0 auto;padding:80px 28px 20px">
+    <div style="font:600 12.5px 'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.14em">HOW IT WORKS</div>
+    <h2 style="margin:12px 0 0;font-size:34px;letter-spacing:-.02em">จากสัญญา สู่สิทธิ์ใช้งานจริง</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)">
+        <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--faint)">01</div>
+        <div style="font-weight:600;font-size:17px;margin-top:10px">ทำสัญญา &amp; ชำระเงิน</div>
+        <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:var(--muted)">เลือกจำนวนหน่วยที่ต้องการซื้อล่วงหน้า ระบบออกสัญญาอายุ 1 ปีให้อัตโนมัติ</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)">
+        <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--faint)">02</div>
+        <div style="font-weight:600;font-size:17px;margin-top:10px">รับหน่วย AI Pro (M)</div>
+        <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:var(--muted)">หน่วยเข้าคลังของบัญชีทันทีหลังชำระเงิน ยังไม่เริ่มนับเวลาใช้งาน</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)">
+        <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--faint)">03</div>
+        <div style="font-weight:600;font-size:17px;margin-top:10px">แลกหน่วย + ผูกอีเมล</div>
+        <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:var(--muted)">ระบุอีเมลที่จะใช้งาน แล้วนำหน่วยมาแลกเป็นสิทธิ์ 30 วันต่อหน่วย</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)">
+        <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--faint)">04</div>
+        <div style="font-weight:600;font-size:17px;margin-top:10px">ผู้จำหน่ายจัดหาสิทธิ์</div>
+        <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:var(--muted)">ผู้จำหน่ายซื้อสิทธิ์ AI จริงตามจำนวนที่แลก และผูกเข้าอีเมลที่ระบุ</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="rules" style="max-width:1180px;margin:0 auto;padding:56px 28px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+      <div style="background:linear-gradient(160deg,var(--navy),var(--navy1));color:#eaf1ff;border-radius:16px;padding:26px">
+        <div style="font:600 30px 'JetBrains Mono',monospace">1 M = 30 วัน</div>
+        <p style="margin:10px 0 0;font-size:14px;line-height:1.7;color:#a9bcd8">ราคาต่อหน่วยอาจปรับตามโปรโมชั่น แต่มูลค่าการใช้งานของ 1 หน่วยคงที่เสมอ</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:var(--shadow)">
+        <div style="font:600 30px 'JetBrains Mono',monospace;color:var(--accent)">12 เดือน</div>
+        <p style="margin:10px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">หน่วยที่ยังไม่ถูกแลกจะอยู่ในคลังได้ตลอดอายุสัญญา 1 ปีนับจากวันเริ่มสัญญา</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:var(--shadow)">
+        <div style="font:600 30px 'JetBrains Mono',monospace;color:var(--accent2)">+ 6 เดือน</div>
+        <p style="margin:10px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">ยื่นคำขอขยายอายุสัญญาได้ รวมแล้วไม่เกิน 6 เดือนต่อหนึ่งสัญญา</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="pricing" style="max-width:1180px;margin:0 auto;padding:44px 28px 20px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px">
+      <div>
+        <div style="font:600 12.5px 'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.14em">PRICING</div>
+        <h2 style="margin:12px 0 0;font-size:34px;letter-spacing:-.02em">ซื้อมาก ราคาต่อหน่วยถูกลง</h2>
+      </div>
+      <div style="font-size:13px;color:var(--muted);max-width:320px;text-align:right">ราคาต่อหน่วยเป็นราคา ณ วันทำสัญญา และถูกล็อกไว้ตลอดอายุสัญญา</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:32px">
+      <sc-for list="{{ plans }}" as="p" hint-placeholder-count="4">
+        <div style="{{ p.cardStyle }}">
+          <sc-if value="{{ p.promo }}"><div style="position:absolute;top:14px;right:14px;font:600 11px 'IBM Plex Sans Thai';background:var(--accent2);color:#03251f;border-radius:6px;padding:4px 8px">{{ p.promo }}</div></sc-if>
+          <div style="font-weight:600;font-size:16px">{{ p.name }}</div>
+          <div style="font:600 40px 'JetBrains Mono',monospace;margin-top:14px;letter-spacing:-.02em">{{ p.units }}</div>
+          <div style="font-size:13px;opacity:.7;margin-top:2px">หน่วย (M)</div>
+          <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
+          <div style="font-size:15px;font-weight:600">{{ p.total }}</div>
+          <div style="font-size:13px;opacity:.7;margin-top:4px">{{ p.per }} ต่อหน่วย · {{ p.days }}</div>
+          <button onClick="{{ goAdmin }}" style="{{ p.btnStyle }}">เริ่มทำสัญญา</button>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:18px;font-size:13px;color:var(--faint)">* ราคายังไม่รวม VAT · องค์กรที่ต้องการเกิน 500 M ติดต่อฝ่ายขายเพื่อทำสัญญาเฉพาะ</div>
+  </div>
+
+  <div id="faq" style="max-width:1180px;margin:0 auto;padding:64px 28px 90px">
+    <h2 style="margin:0 0 26px;font-size:28px;letter-spacing:-.02em">คำถามที่พบบ่อย</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px"><div style="font-weight:600;font-size:15px">หน่วยที่ซื้อหมดอายุไหม?</div><p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">หน่วยจะอยู่ในคลังได้จนถึงวันสิ้นสุดสัญญา (1 ปี) หากขอขยายอายุสัญญาได้รับอนุมัติ หน่วยจะยืดตามไปด้วยสูงสุด 6 เดือน</p></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px"><div style="font-weight:600;font-size:15px">เปลี่ยนอีเมลที่ผูกได้หรือไม่?</div><p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">อีเมลจะผูกตอนแลกหน่วยเท่านั้น สิทธิ์ที่จัดหาแล้วย้ายอีเมลไม่ได้ แต่หน่วยที่ยังไม่แลกนำไปผูกอีเมลอื่นได้อิสระ</p></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px"><div style="font-weight:600;font-size:15px">ราคาลดช่วงโปรฯ กระทบสัญญาเดิมไหม?</div><p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">ไม่กระทบ ราคาใช้ ณ ตอนซื้อหน่วยเท่านั้น มูลค่าการใช้งานของหน่วยคือ 30 วันเสมอไม่ว่าซื้อมาราคาใด</p></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px"><div style="font-weight:600;font-size:15px">แลกแล้วนานแค่ไหนถึงใช้ได้?</div><p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--muted)">คำขอแลกจะเข้าคิวจัดหาสิทธิ์ โดยทั่วไปผูกบัญชีเสร็จภายใน 1 วันทำการ และเริ่มนับ 30 วันเมื่อสิทธิ์ถูกเปิดใช้</p></div>
+    </div>
+  </div>
+
+  <div style="border-top:1px solid var(--border);background:var(--sunk)">
+    <div style="max-width:1180px;margin:0 auto;padding:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:13px;color:var(--muted)">
+      <span>© 2026 AIPRO Contracts · ระบบสัญญาซื้อขายสิทธิ์ AI ล่วงหน้า</span>
+      <div style="display:flex;gap:20px"><a href="#rules" style="color:inherit">เงื่อนไขสัญญา</a><a href="#pricing" style="color:inherit">ราคา</a><a href="#how" style="color:inherit">ติดต่อฝ่ายขาย</a></div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdmin }}">
+<div style="min-height:100vh;display:grid;grid-template-columns:248px 1fr;background:var(--bg)">
+
+  <div style="background:var(--side);color:#c6d5ec;display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+    <div style="padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(140deg,var(--accent),var(--accent2))"></div>
+      <div><div style="color:#fff;font-weight:600;font-size:14px;line-height:1.1">AIPRO Contracts</div><div style="font-size:11px;color:#7b90b3">แผงบริหารจัดการ</div></div>
+    </div>
+    <div style="padding:14px 12px;display:flex;flex-direction:column;gap:2px;overflow:auto">
+      <div style="font:600 10.5px 'JetBrains Mono',monospace;color:#5d729a;letter-spacing:.12em;padding:10px 10px 6px">ภาพรวม</div>
+      <button onClick="{{ goDash }}" style="{{ nav.dash }}">แดชบอร์ด</button>
+      <div style="font:600 10.5px 'JetBrains Mono',monospace;color:#5d729a;letter-spacing:.12em;padding:14px 10px 6px">สัญญา</div>
+      <button onClick="{{ goContracts }}" style="{{ nav.contracts }}">รายการสัญญา</button>
+      <button onClick="{{ goExt }}" style="{{ nav.ext }}">คำขอขยายอายุ<span style="{{ badgeStyle }}">4</span></button>
+      <div style="font:600 10.5px 'JetBrains Mono',monospace;color:#5d729a;letter-spacing:.12em;padding:14px 10px 6px">หน่วย &amp; สิทธิ์</div>
+      <button onClick="{{ goWallet }}" style="{{ nav.wallet }}">คลังหน่วยลูกค้า</button>
+      <button onClick="{{ goRedeem }}" style="{{ nav.redeem }}">คำขอแลกสิทธิ์<span style="{{ badgeStyle }}">7</span></button>
+      <div style="font:600 10.5px 'JetBrains Mono',monospace;color:#5d729a;letter-spacing:.12em;padding:14px 10px 6px">การขาย</div>
+      <button onClick="{{ goPack }}" style="{{ nav.pack }}">แพ็กเกจ &amp; โปรโมชั่น</button>
+    </div>
+    <div style="margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,.08)">
+      <button onClick="{{ goLanding }}" style="width:100%;border:1px solid rgba(255,255,255,.16);background:transparent;color:#c6d5ec;border-radius:9px;padding:9px;font:500 13px 'IBM Plex Sans Thai';cursor:pointer">← กลับหน้า Landing</button>
+    </div>
+  </div>
+
+  <div style="min-width:0">
+    <div style="position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 26px;display:flex;align-items:center;gap:16px">
+      <div style="font-weight:600;font-size:15px">{{ pageTitle }}</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:7px 12px;background:var(--sunk);color:var(--faint);font-size:13px;min-width:220px">ค้นหาสัญญา / อีเมล / เลขที่คำขอ</div>
+        <button onClick="{{ cycleTheme }}" style="border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:9px;padding:8px 12px;font:500 12.5px 'IBM Plex Sans Thai';cursor:pointer">{{ themeLabel }}</button>
+        <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
+          <div style="width:30px;height:30px;border-radius:99px;background:var(--navy);color:#fff;display:grid;place-items:center;font:600 12px 'IBM Plex Sans Thai'">ณ</div>
+          <div style="font-size:12.5px;line-height:1.25"><div style="font-weight:600">ณัฐพล ว.</div><div style="color:var(--faint)">ผู้ดูแลระบบ</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:24px 26px 60px">
+
+      <sc-if value="{{ isDash }}">
+      <div style="display:grid;gap:18px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)">
+              <div style="font-size:12.5px;color:var(--muted)">{{ k.label }}</div>
+              <div style="font:600 30px 'JetBrains Mono',monospace;margin-top:8px;letter-spacing:-.02em">{{ k.value }}</div>
+              <div style="{{ k.deltaStyle }}">{{ k.delta }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <div style="font-weight:600;font-size:15px">หน่วยที่ขาย vs. หน่วยที่ถูกแลก</div>
+              <div style="font-size:12px;color:var(--muted);display:flex;gap:14px"><span>◼ ขาย</span><span style="color:var(--accent2)">◼ แลกใช้</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:14px;height:190px;margin-top:22px">
+              <sc-for list="{{ chart }}" as="c" hint-placeholder-count="8">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+                  <div style="display:flex;align-items:flex-end;gap:4px;height:100%;width:100%;justify-content:center">
+                    <div style="{{ c.barA }}"></div>
+                    <div style="{{ c.barB }}"></div>
+                  </div>
+                  <div style="font-size:11.5px;color:var(--faint)">{{ c.m }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+            <div style="font-weight:600;font-size:15px">สัญญาใกล้หมดอายุ (90 วัน)</div>
+            <div style="display:grid;gap:12px;margin-top:16px">
+              <sc-for list="{{ expiring }}" as="e" hint-placeholder-count="4">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--sunk)">
+                  <div style="min-width:0">
+                    <div style="font:600 12px 'JetBrains Mono',monospace;color:var(--accent)">{{ e.id }}</div>
+                    <div style="font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ e.name }}</div>
+                  </div>
+                  <div style="text-align:right;white-space:nowrap">
+                    <div style="font:600 13px 'JetBrains Mono',monospace">{{ e.left }}</div>
+                    <div style="font-size:11.5px;color:var(--muted)">เหลือ {{ e.days }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:600;font-size:15px">คำขอแลกสิทธิ์ล่าสุด</div>
+            <button onClick="{{ goRedeem }}" style="border:1px solid var(--border);background:var(--sunk);color:var(--text);border-radius:8px;padding:7px 12px;font:500 12.5px 'IBM Plex Sans Thai';cursor:pointer">ดูทั้งหมด</button>
+          </div>
+          <div style="display:grid;grid-template-columns:130px 1fr 200px 90px 130px 120px;padding:11px 20px;font-size:12px;color:var(--muted);background:var(--sunk);border-bottom:1px solid var(--border)">
+            <div>เลขที่คำขอ</div><div>ลูกค้า</div><div>อีเมลที่ผูก</div><div>หน่วย</div><div>วันที่ขอ</div><div>สถานะ</div>
+          </div>
+          <sc-for list="{{ redeems }}" as="r" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:130px 1fr 200px 90px 130px 120px;padding:14px 20px;font-size:13.5px;border-bottom:1px solid var(--border);align-items:center">
+              <div style="font:600 12px 'JetBrains Mono',monospace;color:var(--accent)">{{ r.id }}</div>
+              <div>{{ r.cust }}</div>
+              <div style="color:var(--muted);font-size:12.5px">{{ r.email }}</div>
+              <div style="font:600 13px 'JetBrains Mono',monospace">{{ r.units }}</div>
+              <div style="color:var(--muted)">{{ r.date }}</div>
+              <div><span style="{{ r.pill }}">{{ r.status }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isContracts }}">
+      <div style="display:grid;gap:16px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+            <span style="padding:9px 14px;font-size:13px;background:var(--navy);color:#fff">ทั้งหมด 128</span>
+            <span style="padding:9px 14px;font-size:13px;color:var(--muted)">ใช้งาน 96</span>
+            <span style="padding:9px 14px;font-size:13px;color:var(--muted)">ใกล้หมดอายุ 11</span>
+            <span style="padding:9px 14px;font-size:13px;color:var(--muted)">ขยายอายุแล้ว 14</span>
+            <span style="padding:9px 14px;font-size:13px;color:var(--muted)">หมดอายุ 7</span>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:10px">
+            <button style="border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:9px;padding:9px 14px;font:500 13px 'IBM Plex Sans Thai';cursor:pointer">ส่งออก CSV</button>
+            <button style="border:0;background:var(--navy);color:#fff;border-radius:9px;padding:9px 16px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer">+ สร้างสัญญา</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+          <div style="display:grid;grid-template-columns:130px 1fr 150px 210px 130px 110px;padding:11px 20px;font-size:12px;color:var(--muted);background:var(--sunk);border-bottom:1px solid var(--border)">
+            <div>เลขที่สัญญา</div><div>ลูกค้า</div><div>หน่วยคงเหลือ</div><div>อายุสัญญา</div><div>สถานะ</div><div></div>
+          </div>
+          <sc-for list="{{ contracts }}" as="c" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:130px 1fr 150px 210px 130px 110px;padding:15px 20px;font-size:13.5px;border-bottom:1px solid var(--border);align-items:center">
+              <div style="font:600 12px 'JetBrains Mono',monospace;color:var(--accent)">{{ c.id }}</div>
+              <div><div>{{ c.cust }}</div><div style="font-size:12px;color:var(--faint);margin-top:2px">{{ c.owner }}</div></div>
+              <div>
+                <div style="font:600 13px 'JetBrains Mono',monospace">{{ c.remain }}</div>
+                <div style="height:5px;border-radius:99px;background:var(--surface2);margin-top:6px;overflow:hidden;width:110px"><div style="{{ c.bar }}"></div></div>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted)">{{ c.term }}<div style="{{ c.extStyle }}">{{ c.extNote }}</div></div>
+              <div><span style="{{ c.pill }}">{{ c.status }}</span></div>
+              <div><button onClick="{{ openDetail }}" style="border:1px solid var(--border);background:var(--sunk);color:var(--text);border-radius:8px;padding:7px 12px;font:500 12.5px 'IBM Plex Sans Thai';cursor:pointer">รายละเอียด</button></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isDetail }}">
+      <div style="display:grid;gap:16px">
+        <button onClick="{{ goContracts }}" style="justify-self:start;border:0;background:transparent;color:var(--muted);font:500 13px 'IBM Plex Sans Thai';cursor:pointer;padding:0">← กลับรายการสัญญา</button>
+        <div style="background:linear-gradient(140deg,var(--navy),var(--navy1));color:#eaf1ff;border-radius:16px;padding:26px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center">
+          <div>
+            <div style="font:600 12px 'JetBrains Mono',monospace;color:#8ba1c4;letter-spacing:.1em">CT-2026-0148</div>
+            <div style="font-size:24px;font-weight:600;margin-top:6px">บริษัท ซินโนเวท จำกัด</div>
+            <div style="display:flex;gap:26px;margin-top:18px;font-size:13px;color:#a9bcd8">
+              <div><div style="color:#7b90b3;font-size:11.5px">เริ่มสัญญา</div>12 ม.ค. 2026</div>
+              <div><div style="color:#7b90b3;font-size:11.5px">สิ้นสุด (เดิม)</div>11 ม.ค. 2027</div>
+              <div><div style="color:#7b90b3;font-size:11.5px">ขยายแล้ว</div>2 เดือน (เหลือขอได้อีก 4)</div>
+              <div><div style="color:#7b90b3;font-size:11.5px">สิ้นสุดหลังขยาย</div>11 มี.ค. 2027</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font:600 44px 'JetBrains Mono',monospace">144 M</div>
+            <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก 240 M · มูลค่า 4,320 วันใช้งาน</div>
+            <button style="margin-top:14px;border:0;background:#fff;color:#0d1c34;border-radius:9px;padding:10px 16px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer">อนุมัติขยายอายุ</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:15px">บัญชีแยกประเภทหน่วย (Unit ledger)</div>
+            <sc-for list="{{ ledger }}" as="l" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:110px 1fr 90px 90px;padding:13px 20px;font-size:13px;border-bottom:1px solid var(--border);align-items:center">
+                <div style="color:var(--muted);font-size:12.5px">{{ l.date }}</div>
+                <div>{{ l.desc }}</div>
+                <div style="{{ l.amtStyle }}">{{ l.amt }}</div>
+                <div style="text-align:right;font:600 12.5px 'JetBrains Mono',monospace;color:var(--muted)">{{ l.bal }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;gap:16px;align-content:start">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+              <div style="font-weight:600;font-size:15px">โควตาการขยายอายุ</div>
+              <div style="display:flex;gap:6px;margin-top:16px">
+                <sc-for list="{{ extBoxes }}" as="b" hint-placeholder-count="6"><div style="{{ b.style }}">{{ b.n }}</div></sc-for>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.6">ใช้ไป 2 จาก 6 เดือน — การขยายอายุมีผลกับหน่วยคงเหลือทั้งหมดในสัญญา</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+              <div style="font-weight:600;font-size:15px">อีเมลที่ผูกสิทธิ์แล้ว</div>
+              <div style="display:grid;gap:10px;margin-top:14px">
+                <sc-for list="{{ seats }}" as="s" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--sunk)">
+                    <span style="color:var(--muted);font-size:12.5px">{{ s.email }}</span>
+                    <span style="font:600 12px 'JetBrains Mono',monospace">{{ s.until }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isWallet }}">
+      <div style="display:grid;gap:16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)"><div style="font-size:12.5px;color:var(--muted)">หน่วยคงคลังรวมทุกบัญชี</div><div style="font:600 30px 'JetBrains Mono',monospace;margin-top:8px">8,412 M</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)"><div style="font-size:12.5px;color:var(--muted)">ภาระผูกพัน (วันใช้งาน)</div><div style="font:600 30px 'JetBrains Mono',monospace;margin-top:8px">252,360</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)"><div style="font-size:12.5px;color:var(--muted)">หน่วยที่จะหมดอายุใน 90 วัน</div><div style="font:600 30px 'JetBrains Mono',monospace;margin-top:8px;color:var(--warn)">1,046 M</div></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 120px 120px 120px 1fr;padding:11px 20px;font-size:12px;color:var(--muted);background:var(--sunk);border-bottom:1px solid var(--border)">
+            <div>บัญชีลูกค้า</div><div>ซื้อสะสม</div><div>แลกไปแล้ว</div><div>คงเหลือ</div><div>สัดส่วนการใช้</div>
+          </div>
+          <sc-for list="{{ wallets }}" as="w" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1fr 120px 120px 120px 1fr;padding:14px 20px;font-size:13.5px;border-bottom:1px solid var(--border);align-items:center">
+              <div><div>{{ w.cust }}</div><div style="font:500 11.5px 'JetBrains Mono',monospace;color:var(--faint);margin-top:2px">{{ w.id }}</div></div>
+              <div style="font:600 13px 'JetBrains Mono',monospace">{{ w.bought }}</div>
+              <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--muted)">{{ w.used }}</div>
+              <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--accent)">{{ w.left }}</div>
+              <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden"><div style="{{ w.bar }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isRedeem }}">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:600;font-size:15px">คิวจัดหาสิทธิ์ AI</div>
+            <div style="font-size:12.5px;color:var(--muted)">รอดำเนินการ 7 · วันนี้ 12</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px 1fr 90px 110px 130px;padding:11px 20px;font-size:12px;color:var(--muted);background:var(--sunk);border-bottom:1px solid var(--border)">
+            <div>เลขที่คำขอ</div><div>อีเมลที่ผูก</div><div>หน่วย</div><div>สถานะ</div><div style="text-align:right">การจัดการ</div>
+          </div>
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:120px 1fr 90px 110px 130px;padding:14px 20px;font-size:13.5px;border-bottom:1px solid var(--border);align-items:center">
+              <div style="font:600 12px 'JetBrains Mono',monospace;color:var(--accent)">{{ q.id }}</div>
+              <div><div style="font-size:12.5px;color:var(--muted)">{{ q.email }}</div><div style="font-size:12px;color:var(--faint);margin-top:2px">{{ q.cust }}</div></div>
+              <div style="font:600 13px 'JetBrains Mono',monospace">{{ q.units }}</div>
+              <div><span style="{{ q.pill }}">{{ q.status }}</span></div>
+              <div style="text-align:right"><button style="{{ q.btn }}">{{ q.action }}</button></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+          <div style="font-weight:600;font-size:15px">แลกหน่วยแทนลูกค้า</div>
+          <div style="display:grid;gap:12px;margin-top:16px">
+            <div><div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">สัญญา</div><div style="border:1px solid var(--border);border-radius:9px;padding:10px 12px;font:600 12.5px 'JetBrains Mono',monospace;background:var(--sunk)">CT-2026-0148 · คงเหลือ 144 M</div></div>
+            <div><div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">อีเมลที่ต้องการผูกบัญชี</div><div style="border:1px solid var(--accent);border-radius:9px;padding:10px 12px;font-size:13px;background:var(--sunk)">design@sinnovate.co</div></div>
+            <div><div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">จำนวนหน่วยที่แลก</div>
+              <div style="display:flex;gap:8px">
+                <sc-for list="{{ amounts }}" as="a" hint-placeholder-count="4"><div style="{{ a.style }}">{{ a.label }}</div></sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding:14px;border-radius:11px;background:var(--sunk);border:1px dashed var(--border);font-size:12.5px;line-height:1.7;color:var(--muted)">แลก <b style="color:var(--text)">6 M</b> = สิทธิ์ AI Pro <b style="color:var(--text)">180 วัน</b><br>คงเหลือหลังแลก 138 M · หมดอายุสิทธิ์ 22 ม.ค. 2027</div>
+          <button style="width:100%;margin-top:14px;border:0;background:var(--navy);color:#fff;border-radius:10px;padding:12px;font:600 13.5px 'IBM Plex Sans Thai';cursor:pointer">ยืนยันการแลกและส่งเข้าคิวจัดหา</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isExt }}">
+      <div style="display:grid;gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted);line-height:1.7">นโยบาย: ขยายอายุสัญญาได้รวมไม่เกิน <b style="color:var(--text)">6 เดือน</b> ต่อสัญญา ระบบจะบล็อกคำขอที่ทำให้เกินโควตาโดยอัตโนมัติ</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+          <sc-for list="{{ extReqs }}" as="x" hint-placeholder-count="4">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                <div>
+                  <div style="font:600 12px 'JetBrains Mono',monospace;color:var(--accent)">{{ x.id }}</div>
+                  <div style="font-weight:600;font-size:15.5px;margin-top:5px">{{ x.cust }}</div>
+                  <div style="font-size:12.5px;color:var(--muted);margin-top:3px">{{ x.contract }} · คงเหลือ {{ x.remain }}</div>
+                </div>
+                <span style="{{ x.pill }}">{{ x.status }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;font-size:12.5px">
+                <div style="background:var(--sunk);border-radius:10px;padding:11px"><div style="color:var(--faint);font-size:11.5px">ขอขยาย</div><div style="font:600 15px 'JetBrains Mono',monospace;margin-top:3px">{{ x.months }}</div></div>
+                <div style="background:var(--sunk);border-radius:10px;padding:11px"><div style="color:var(--faint);font-size:11.5px">ใช้โควตาไปแล้ว</div><div style="font:600 15px 'JetBrains Mono',monospace;margin-top:3px">{{ x.used }}</div></div>
+                <div style="background:var(--sunk);border-radius:10px;padding:11px"><div style="color:var(--faint);font-size:11.5px">สิ้นสุดใหม่</div><div style="font:600 15px 'JetBrains Mono',monospace;margin-top:3px">{{ x.newEnd }}</div></div>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.6">เหตุผล: {{ x.reason }}</div>
+              <div style="display:flex;gap:9px;margin-top:16px">
+                <button style="flex:1;border:0;background:var(--navy);color:#fff;border-radius:9px;padding:10px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer">อนุมัติ</button>
+                <button style="flex:1;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:9px;padding:10px;font:500 13px 'IBM Plex Sans Thai';cursor:pointer">ขอข้อมูลเพิ่ม</button>
+                <button style="border:1px solid var(--border);background:var(--surface);color:var(--danger);border-radius:9px;padding:10px 14px;font:500 13px 'IBM Plex Sans Thai';cursor:pointer">ปฏิเสธ</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPack }}">
+      <div style="display:grid;gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div style="font-size:13.5px;color:var(--muted);line-height:1.7">ปรับราคาได้เฉพาะ "ราคาต่อหน่วย" เท่านั้น — มูลค่าการใช้งานของ 1 หน่วยถูกล็อกไว้ที่ <b style="color:var(--text)">30 วัน</b> ในระดับระบบ</div>
+          <button style="border:0;background:var(--navy);color:#fff;border-radius:9px;padding:10px 16px;font:600 13px 'IBM Plex Sans Thai';cursor:pointer;white-space:nowrap">+ สร้างโปรโมชั่น</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 110px 130px 130px 1fr 110px;padding:11px 20px;font-size:12px;color:var(--muted);background:var(--sunk);border-bottom:1px solid var(--border)">
+            <div>แพ็กเกจ</div><div>หน่วย</div><div>ราคาปกติ/M</div><div>ราคาขาย/M</div><div>ช่วงโปรโมชั่น</div><div>สถานะ</div>
+          </div>
+          <sc-for list="{{ packs }}" as="p" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1fr 110px 130px 130px 1fr 110px;padding:15px 20px;font-size:13.5px;border-bottom:1px solid var(--border);align-items:center">
+              <div><div style="font-weight:600">{{ p.name }}</div><div style="font-size:12px;color:var(--faint);margin-top:2px">{{ p.note }}</div></div>
+              <div style="font:600 13px 'JetBrains Mono',monospace">{{ p.units }}</div>
+              <div style="font:400 13px 'JetBrains Mono',monospace;color:var(--faint);text-decoration:line-through">{{ p.list }}</div>
+              <div style="font:600 13px 'JetBrains Mono',monospace;color:var(--accent)">{{ p.sale }}</div>
+              <div style="font-size:12.5px;color:var(--muted)">{{ p.window }}</div>
+              <div><span style="{{ p.pill }}">{{ p.status }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2f6dff&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#2f6dff&quot;,&quot;#00b39a&quot;,&quot;#7b5cff&quot;,&quot;#e0592b&quot;],&quot;section&quot;:&quot;ธีม&quot;},&quot;brandNavy&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#12294b&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#12294b&quot;,&quot;#1b2a4a&quot;,&quot;#0f3355&quot;,&quot;#241f4a&quot;],&quot;section&quot;:&quot;ธีม&quot;},&quot;showPromo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;หน้า Landing&quot;}}">
+const pill = (bg, fg) => ({display:"inline-block",padding:"4px 10px",borderRadius:"7px",fontSize:"12px",fontWeight:600,background:bg,color:fg,whiteSpace:"nowrap"});
+const P = {
+  ok: pill("color-mix(in srgb,#0e8a63 16%,transparent)","#0e8a63"),
+  wait: pill("color-mix(in srgb,#c07a00 18%,transparent)","#c07a00"),
+  info: pill("color-mix(in srgb,#2f6dff 16%,transparent)","#2f6dff"),
+  off: pill("color-mix(in srgb,#8d9bb0 20%,transparent)","var(--muted)"),
+  bad: pill("color-mix(in srgb,#c8443a 16%,transparent)","#c8443a")
+};
+const bar = (pct, color) => ({height:"100%",width:pct+"%",borderRadius:"99px",background:color||"var(--accent)"});
+
+class Component extends DCLogic {
+  state = { view:"landing", page:"dash", theme:"system" };
+  netRef = React.createRef();
+
+  componentDidMount(){ this.apply(); this.startNet(); }
+  componentWillUnmount(){ cancelAnimationFrame(this._raf); if (this._ro) this._ro.disconnect(); }
+
+  startNet(){
+    const cv = this.netRef.current;
+    if (!cv || this._cv === cv) return;
+    this._cv = cv;
+    const ctx = cv.getContext("2d");
+    let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const N = 34, nodes = [], links = [], pulses = [];
+    const rnd = (a,b) => a + Math.random()*(b-a);
+
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      W = r.width; H = r.height;
+      cv.width = W*dpr; cv.height = H*dpr;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      if (!nodes.length) build();
+    };
+    const core = {x:0,y:0,core:true};
+    const build = () => {
+      nodes.length = 0; links.length = 0;
+      core.x = W*0.5; core.y = H*0.5;
+      nodes.push(core);
+      for (let i=0;i<N;i++){
+        nodes.push({x:rnd(0,W), y:rnd(0,H), vx:rnd(-.009,.009), vy:rnd(-.0065,.0065), r:rnd(1.2,2.6)});
+      }
+      for (let i=1;i<nodes.length;i++){
+        if (Math.random() < .45) links.push([0,i]);
+        for (let j=i+1;j<nodes.length;j++) if (Math.random() < .05) links.push([i,j]);
+      }
+    };
+    const spawn = () => {
+      if (!links.length) return;
+      const l = links[(Math.random()*links.length)|0];
+      const dir = Math.random() < .5;
+      pulses.push({a: dir?l[0]:l[1], b: dir?l[1]:l[0], t:0, sp: rnd(.00025,.00065)});
+    };
+
+    const frame = () => {
+      this._raf = requestAnimationFrame(frame);
+      if (!cv.isConnected){ cancelAnimationFrame(this._raf); this._cv = null; return; }
+      ctx.clearRect(0,0,W,H);
+      for (let i=1;i<nodes.length;i++){
+        const n = nodes[i];
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+      }
+      ctx.lineWidth = 1;
+      for (const [a,b] of links){
+        const p = nodes[a], q = nodes[b];
+        const d = Math.hypot(p.x-q.x, p.y-q.y);
+        const alpha = Math.max(0, .3 - d/1900);
+        if (alpha <= 0) continue;
+        ctx.strokeStyle = "rgba(140,180,255," + alpha.toFixed(3) + ")";
+        ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+      }
+      if (Math.random() < .012) spawn();
+      for (let i=pulses.length-1;i>=0;i--){
+        const pu = pulses[i];
+        pu.t += pu.sp;
+        if (pu.t >= 1){ pulses.splice(i,1); continue; }
+        const p = nodes[pu.a], q = nodes[pu.b];
+        const x = p.x + (q.x-p.x)*pu.t, y = p.y + (q.y-p.y)*pu.t;
+        const fade = Math.sin(pu.t*Math.PI);
+        const g = ctx.createRadialGradient(x,y,0,x,y,9);
+        g.addColorStop(0,"rgba(120,255,225," + (.85*fade).toFixed(3) + ")");
+        g.addColorStop(1,"rgba(0,179,154,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,9,0,6.2832); ctx.fill();
+        ctx.fillStyle = "rgba(220,255,250," + fade.toFixed(3) + ")";
+        ctx.beginPath(); ctx.arc(x,y,1.7,0,6.2832); ctx.fill();
+      }
+      for (let i=1;i<nodes.length;i++){
+        const n = nodes[i];
+        ctx.fillStyle = "rgba(180,210,255,.55)";
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,6.2832); ctx.fill();
+      }
+      const t = performance.now()/1000;
+      const pr = 16 + Math.sin(t*0.08)*3;
+      const cg = ctx.createRadialGradient(core.x,core.y,0,core.x,core.y,pr*3.4);
+      cg.addColorStop(0,"rgba(47,109,255,.55)");
+      cg.addColorStop(1,"rgba(47,109,255,0)");
+      ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(core.x,core.y,pr*3.4,0,6.2832); ctx.fill();
+      ctx.strokeStyle = "rgba(160,200,255,.45)"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(core.x,core.y,pr,0,6.2832); ctx.stroke();
+      ctx.fillStyle = "rgba(235,245,255,.92)";
+      ctx.beginPath(); ctx.arc(core.x,core.y,4.2,0,6.2832); ctx.fill();
+    };
+
+    resize();
+    this._ro = new ResizeObserver(resize); this._ro.observe(cv);
+    cancelAnimationFrame(this._raf); frame();
+  }
+  apply(){
+    const t = this.state.theme;
+    const el = document.documentElement;
+    if (t === "system") el.removeAttribute("data-theme"); else el.setAttribute("data-theme", t);
+    const a = this.props.accentColor; if (a) el.style.setProperty("--accent", a);
+    const n = this.props.brandNavy; if (n) { el.style.setProperty("--navy", n); }
+  }
+  componentDidUpdate(){ this.apply(); if (this.netRef.current !== this._cv) { this._cv = null; this.startNet(); } }
+
+  set(k,v){ return () => this.setState({[k]:v}); }
+
+  renderVals(){
+    const s = this.state;
+    const themeLabels = {system:"ตามระบบ", light:"โหมดสว่าง", dark:"โหมดมืด"};
+    const cycleTheme = () => this.setState(st => ({theme: st.theme==="system"?"light":st.theme==="light"?"dark":"system"}));
+
+    const navBase = {textAlign:"left",border:0,borderRadius:"9px",padding:"9px 11px",font:"500 13.5px 'IBM Plex Sans Thai'",cursor:"pointer",background:"transparent",color:"#b3c5e0",display:"flex",alignItems:"center",gap:"8px"};
+    const navOn = {...navBase,background:"var(--side2)",color:"#fff",fontWeight:600,boxShadow:"inset 3px 0 0 var(--accent)"};
+    const p = s.page;
+    const nav = {
+      dash: p==="dash"?navOn:navBase,
+      contracts: (p==="contracts"||p==="detail")?navOn:navBase,
+      ext: p==="ext"?navOn:navBase,
+      wallet: p==="wallet"?navOn:navBase,
+      redeem: p==="redeem"?navOn:navBase,
+      pack: p==="pack"?navOn:navBase
+    };
+    const titles = {dash:"แดชบอร์ด", contracts:"รายการสัญญา", detail:"รายละเอียดสัญญา", wallet:"คลังหน่วยลูกค้า", redeem:"คำขอแลกสิทธิ์ AI", ext:"คำขอขยายอายุสัญญา", pack:"แพ็กเกจ & โปรโมชั่น"};
+
+    const planCard = (dark) => ({position:"relative",borderRadius:"16px",padding:"24px",border:dark?"1px solid transparent":"1px solid var(--border)",background:dark?"linear-gradient(160deg,var(--navy),var(--navy1))":"var(--surface)",color:dark?"#eaf1ff":"var(--text)",boxShadow:"var(--shadow)"});
+    const planBtn = (dark) => ({width:"100%",marginTop:"20px",border:dark?0:"1px solid var(--border)",background:dark?"#fff":"var(--sunk)",color:dark?"#0d1c34":"var(--text)",borderRadius:"10px",padding:"11px",font:"600 13.5px 'IBM Plex Sans Thai'",cursor:"pointer"});
+    const showPromo = this.props.showPromo !== false;
+    const plans = [
+      {name:"Starter", units:"12", total:"฿8,280", per:"฿690", days:"360 วันใช้งาน", promo:null, cardStyle:planCard(false), btnStyle:planBtn(false)},
+      {name:"Team", units:"60", total:"฿37,800", per:"฿630", days:"1,800 วันใช้งาน", promo:showPromo?"ยอดนิยม":null, cardStyle:planCard(true), btnStyle:planBtn(true)},
+      {name:"Scale", units:"240", total:"฿132,000", per:"฿550", days:"7,200 วันใช้งาน", promo:showPromo?"-20%":null, cardStyle:planCard(false), btnStyle:planBtn(false)},
+      {name:"Enterprise", units:"500+", total:"ราคาเฉพาะราย", per:"ตกลงร่วมกัน", days:"สัญญาแบบกำหนดเอง", promo:null, cardStyle:planCard(false), btnStyle:planBtn(false)}
+    ];
+
+    const kpis = [
+      {label:"หน่วยขายเดือนนี้", value:"1,860 M", delta:"▲ 12.4% จากเดือนก่อน", deltaStyle:{fontSize:"12px",color:"var(--ok)",marginTop:"6px"}},
+      {label:"หน่วยที่ถูกแลกใช้", value:"1,204 M", delta:"▲ 6.1% จากเดือนก่อน", deltaStyle:{fontSize:"12px",color:"var(--ok)",marginTop:"6px"}},
+      {label:"สัญญาที่ยังใช้งาน", value:"96", delta:"11 สัญญาใกล้หมดอายุ", deltaStyle:{fontSize:"12px",color:"var(--warn)",marginTop:"6px"}},
+      {label:"รายได้รับล่วงหน้า", value:"฿4.92M", delta:"ภาระผูกพัน 252,360 วัน", deltaStyle:{fontSize:"12px",color:"var(--muted)",marginTop:"6px"}}
+    ];
+
+    const chartRaw = [[62,40],[74,48],[58,52],[86,60],[92,66],[70,72],[98,74],[88,80]];
+    const months = ["ธ.ค.","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค."];
+    const chart = chartRaw.map((v,i) => ({
+      m: months[i],
+      barA: {width:"14px",height:v[0]+"%",borderRadius:"5px 5px 0 0",background:"var(--navy)"},
+      barB: {width:"14px",height:v[1]+"%",borderRadius:"5px 5px 0 0",background:"var(--accent2)",opacity:.85}
+    }));
+
+    const expiring = [
+      {id:"CT-2025-0912", name:"เอ็นเนอร์จี้ พลัส", left:"84 M", days:"23 วัน"},
+      {id:"CT-2025-1004", name:"สยาม ดิจิทัล กรุ๊ป", left:"156 M", days:"41 วัน"},
+      {id:"CT-2025-1067", name:"คุณ พิมพ์ชนก ส.", left:"9 M", days:"58 วัน"},
+      {id:"CT-2025-1121", name:"โลจิสวัน จำกัด", left:"312 M", days:"77 วัน"}
+    ];
+
+    const redeems = [
+      {id:"RX-4820", cust:"บริษัท ซินโนเวท จำกัด", email:"ops@sinnovate.co", units:"12 M", date:"25 ก.ค. 2026", status:"จัดหาสำเร็จ", pill:P.ok},
+      {id:"RX-4819", cust:"สยาม ดิจิทัล กรุ๊ป", email:"pm@siamdigital.th", units:"6 M", date:"25 ก.ค. 2026", status:"กำลังจัดหา", pill:P.wait},
+      {id:"RX-4818", cust:"โลจิสวัน จำกัด", email:"warehouse@logisone.co.th", units:"24 M", date:"24 ก.ค. 2026", status:"กำลังจัดหา", pill:P.wait},
+      {id:"RX-4817", cust:"คุณ ธนกฤต อ.", email:"thanakrit.a@gmail.com", units:"1 M", date:"24 ก.ค. 2026", status:"จัดหาสำเร็จ", pill:P.ok},
+      {id:"RX-4816", cust:"เอ็นเนอร์จี้ พลัส", email:"it-admin@energyplus.co", units:"18 M", date:"23 ก.ค. 2026", status:"รอยืนยันอีเมล", pill:P.info}
+    ];
+
+    const contracts = [
+      {id:"CT-2026-0148", cust:"บริษัท ซินโนเวท จำกัด", owner:"ops@sinnovate.co", remain:"144 / 240 M", term:"12 ม.ค. 2026 – 11 มี.ค. 2027", extNote:"ขยายแล้ว 2 เดือน (เหลือ 4)", status:"ใช้งาน", pill:P.ok, bar:bar(60), extStyle:{fontSize:"11.5px",color:"var(--accent)",marginTop:"3px"}},
+      {id:"CT-2026-0139", cust:"สยาม ดิจิทัล กรุ๊ป", owner:"pm@siamdigital.th", remain:"156 / 300 M", term:"04 ม.ค. 2026 – 03 ม.ค. 2027", extNote:"ยังไม่เคยขยาย", status:"ใช้งาน", pill:P.ok, bar:bar(52), extStyle:{fontSize:"11.5px",color:"var(--faint)",marginTop:"3px"}},
+      {id:"CT-2025-1121", cust:"โลจิสวัน จำกัด", owner:"warehouse@logisone.co.th", remain:"312 / 480 M", term:"11 ต.ค. 2025 – 10 ต.ค. 2026", extNote:"ใกล้หมดอายุใน 77 วัน", status:"ใกล้หมดอายุ", pill:P.wait, bar:bar(65,"var(--warn)"), extStyle:{fontSize:"11.5px",color:"var(--warn)",marginTop:"3px"}},
+      {id:"CT-2025-1067", cust:"คุณ พิมพ์ชนก ส.", owner:"pimchanok.s@gmail.com", remain:"9 / 12 M", term:"22 ก.ย. 2025 – 21 ก.ย. 2026", extNote:"คำขอขยาย 3 เดือนรออนุมัติ", status:"รออนุมัติขยาย", pill:P.info, bar:bar(75,"var(--accent)"), extStyle:{fontSize:"11.5px",color:"var(--accent)",marginTop:"3px"}},
+      {id:"CT-2025-1004", cust:"เอ็นเนอร์จี้ พลัส", owner:"it-admin@energyplus.co", remain:"84 / 180 M", term:"18 ส.ค. 2025 – 17 ก.พ. 2027", extNote:"ขยายเต็มโควตา 6 เดือน", status:"ขยายอายุแล้ว", pill:P.info, bar:bar(47), extStyle:{fontSize:"11.5px",color:"var(--muted)",marginTop:"3px"}},
+      {id:"CT-2024-0871", cust:"มีเดียแล็บ สตูดิโอ", owner:"studio@medialab.co", remain:"0 / 60 M", term:"02 ก.ค. 2025 – 01 ก.ค. 2026", extNote:"ปิดสัญญาแล้ว", status:"หมดอายุ", pill:P.off, bar:bar(0), extStyle:{fontSize:"11.5px",color:"var(--faint)",marginTop:"3px"}}
+    ];
+
+    const ledger = [
+      {date:"12 ม.ค. 2026", desc:"ซื้อหน่วยตามสัญญา (Scale 240 M @ ฿550)", amt:"+240 M", bal:"240 M", amtStyle:{font:"600 13px 'JetBrains Mono',monospace",color:"var(--ok)"}},
+      {date:"03 ก.พ. 2026", desc:"แลกสิทธิ์ → ops@sinnovate.co (360 วัน)", amt:"−12 M", bal:"228 M", amtStyle:{font:"600 13px 'JetBrains Mono',monospace",color:"var(--danger)"}},
+      {date:"19 มี.ค. 2026", desc:"แลกสิทธิ์ → team 4 อีเมล (แต่ละราย 12 M)", amt:"−48 M", bal:"180 M", amtStyle:{font:"600 13px 'JetBrains Mono',monospace",color:"var(--danger)"}},
+      {date:"08 พ.ค. 2026", desc:"อนุมัติขยายอายุสัญญา +2 เดือน", amt:"0 M", bal:"180 M", amtStyle:{font:"600 13px 'JetBrains Mono',monospace",color:"var(--muted)"}},
+      {date:"25 ก.ค. 2026", desc:"แลกสิทธิ์ → data@sinnovate.co (1,080 วัน)", amt:"−36 M", bal:"144 M", amtStyle:{font:"600 13px 'JetBrains Mono',monospace",color:"var(--danger)"}}
+    ];
+
+    const extBoxes = [1,2,3,4,5,6].map(n => ({n, style:{flex:1,height:"36px",display:"grid",placeItems:"center",borderRadius:"8px",font:"600 13px 'JetBrains Mono',monospace",background:n<=2?"var(--navy)":"var(--surface2)",color:n<=2?"#fff":"var(--faint)"}}));
+
+    const seats = [
+      {email:"ops@sinnovate.co", until:"ถึง 28 ม.ค. 2027"},
+      {email:"data@sinnovate.co", until:"ถึง 19 ก.ค. 2029"},
+      {email:"qa@sinnovate.co", until:"ถึง 14 มี.ค. 2027"}
+    ];
+
+    const wallets = [
+      {cust:"บริษัท ซินโนเวท จำกัด", id:"AC-1042", bought:"240 M", used:"96 M", left:"144 M", bar:bar(40)},
+      {cust:"สยาม ดิจิทัล กรุ๊ป", id:"AC-1039", bought:"300 M", used:"144 M", left:"156 M", bar:bar(48)},
+      {cust:"โลจิสวัน จำกัด", id:"AC-0987", bought:"480 M", used:"168 M", left:"312 M", bar:bar(35)},
+      {cust:"เอ็นเนอร์จี้ พลัส", id:"AC-0954", bought:"180 M", used:"96 M", left:"84 M", bar:bar(53,"var(--warn)")},
+      {cust:"คุณ พิมพ์ชนก ส.", id:"AC-1188", bought:"12 M", used:"3 M", left:"9 M", bar:bar(25)},
+      {cust:"มีเดียแล็บ สตูดิโอ", id:"AC-0801", bought:"60 M", used:"60 M", left:"0 M", bar:bar(100,"var(--muted)")}
+    ];
+
+    const actBtn = (primary) => ({border:primary?0:"1px solid var(--border)",background:primary?"var(--navy)":"var(--surface)",color:primary?"#fff":"var(--muted)",borderRadius:"8px",padding:"8px 12px",font:"600 12.5px 'IBM Plex Sans Thai'",cursor:"pointer"});
+    const queue = [
+      {id:"RX-4819", email:"pm@siamdigital.th", cust:"สยาม ดิจิทัล กรุ๊ป", units:"6 M", status:"รอจัดหา", pill:P.wait, btn:actBtn(true), action:"จัดหาสิทธิ์"},
+      {id:"RX-4818", email:"warehouse@logisone.co.th", cust:"โลจิสวัน จำกัด", units:"24 M", status:"รอจัดหา", pill:P.wait, btn:actBtn(true), action:"จัดหาสิทธิ์"},
+      {id:"RX-4816", email:"it-admin@energyplus.co", cust:"เอ็นเนอร์จี้ พลัส", units:"18 M", status:"รอยืนยัน", pill:P.info, btn:actBtn(false), action:"ส่งอีเมลซ้ำ"},
+      {id:"RX-4815", email:"design@sinnovate.co", cust:"บริษัท ซินโนเวท จำกัด", units:"6 M", status:"รอจัดหา", pill:P.wait, btn:actBtn(true), action:"จัดหาสิทธิ์"},
+      {id:"RX-4814", email:"thanakrit.a@gmail.com", cust:"คุณ ธนกฤต อ.", units:"1 M", status:"สำเร็จ", pill:P.ok, btn:actBtn(false), action:"ดูสิทธิ์"},
+      {id:"RX-4813", email:"studio@medialab.co", cust:"มีเดียแล็บ สตูดิโอ", units:"12 M", status:"สำเร็จ", pill:P.ok, btn:actBtn(false), action:"ดูสิทธิ์"}
+    ];
+
+    const amtChip = (on) => ({flex:1,textAlign:"center",padding:"10px 0",borderRadius:"9px",border:on?"1px solid var(--accent)":"1px solid var(--border)",background:on?"color-mix(in srgb,var(--accent) 12%,transparent)":"var(--sunk)",color:on?"var(--accent)":"var(--muted)",font:"600 13px 'JetBrains Mono',monospace",cursor:"pointer"});
+    const amounts = [
+      {label:"1 M", style:amtChip(false)},
+      {label:"3 M", style:amtChip(false)},
+      {label:"6 M", style:amtChip(true)},
+      {label:"12 M", style:amtChip(false)}
+    ];
+
+    const extReqs = [
+      {id:"EX-2026-031", cust:"คุณ พิมพ์ชนก ส.", contract:"CT-2025-1067", remain:"9 M", months:"3 เดือน", used:"0 เดือน", newEnd:"21 ธ.ค. 2026", reason:"ยังไม่ได้เริ่มโครงการ ขอเลื่อนการใช้สิทธิ์ออกไปหนึ่งไตรมาส", status:"รออนุมัติ", pill:P.wait},
+      {id:"EX-2026-030", cust:"โลจิสวัน จำกัด", contract:"CT-2025-1121", remain:"312 M", months:"6 เดือน", used:"0 เดือน", newEnd:"10 เม.ย. 2027", reason:"รอผลอนุมัติงบประมาณกลางปีก่อนเปิดใช้งานทีมคลังสินค้า", status:"รออนุมัติ", pill:P.wait},
+      {id:"EX-2026-029", cust:"บริษัท ซินโนเวท จำกัด", contract:"CT-2026-0148", remain:"144 M", months:"4 เดือน", used:"2 เดือน", newEnd:"11 ก.ค. 2027", reason:"ขยายทีมช้ากว่าแผน ขอใช้โควตาที่เหลือทั้งหมด", status:"ตรวจสอบโควตา", pill:P.info},
+      {id:"EX-2026-028", cust:"เอ็นเนอร์จี้ พลัส", contract:"CT-2025-1004", remain:"84 M", months:"2 เดือน", used:"6 เดือน", newEnd:"—", reason:"เกินโควตา 6 เดือนที่นโยบายกำหนด ระบบบล็อกอัตโนมัติ", status:"เกินโควตา", pill:P.bad}
+    ];
+
+    const packs = [
+      {name:"Starter", note:"ลูกค้าบุคคล / ทีมเล็ก", units:"12 M", list:"฿750", sale:"฿690", window:"ราคามาตรฐาน", status:"เปิดขาย", pill:P.ok},
+      {name:"Team", note:"ทีม 5–20 คน", units:"60 M", list:"฿750", sale:"฿630", window:"ราคามาตรฐาน", status:"เปิดขาย", pill:P.ok},
+      {name:"Scale", note:"องค์กรขนาดกลาง", units:"240 M", list:"฿750", sale:"฿550", window:"ราคามาตรฐาน", status:"เปิดขาย", pill:P.ok},
+      {name:"Mid-Year Boost", note:"ส่วนลดเฉพาะช่วง · จำกัด 200 สัญญา", units:"60 M", list:"฿630", sale:"฿499", window:"1 ก.ค. – 15 ส.ค. 2026", status:"กำลังโปรฯ", pill:P.info},
+      {name:"Q1 Launch", note:"แคมเปญเปิดตัว (จบแล้ว)", units:"12 M", list:"฿750", sale:"฿590", window:"1 ม.ค. – 29 ก.พ. 2026", status:"ปิดแล้ว", pill:P.off}
+    ];
+
+    return {
+      isLanding: s.view==="landing", isAdmin: s.view==="admin",
+      isDash: p==="dash", isContracts: p==="contracts", isDetail: p==="detail",
+      isWallet: p==="wallet", isRedeem: p==="redeem", isExt: p==="ext", isPack: p==="pack",
+      pageTitle: titles[p], nav,
+      badgeStyle: {marginLeft:"auto",background:"var(--accent)",color:"#fff",borderRadius:"99px",padding:"1px 7px",font:"600 11px 'JetBrains Mono',monospace"},
+      themeLabel: themeLabels[s.theme], cycleTheme, netRef: this.netRef,
+      goAdmin: () => this.setState({view:"admin", page:"dash"}),
+      goLanding: this.set("view","landing"),
+      goPricing: () => { const el = document.getElementById("pricing"); if (el) window.scrollTo({top: el.offsetTop - 70, behavior:"smooth"}); },
+      goDash: this.set("page","dash"), goContracts: this.set("page","contracts"),
+      goWallet: this.set("page","wallet"), goRedeem: this.set("page","redeem"),
+      goExt: this.set("page","ext"), goPack: this.set("page","pack"),
+      openDetail: this.set("page","detail"),
+      plans, kpis, chart, expiring, redeems, contracts, ledger, extBoxes, seats, wallets, queue, amounts, extReqs, packs
+    };
+  }
+}
+
+</script>
+</body>
+</html>
