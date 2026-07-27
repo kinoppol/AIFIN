@@ -18,6 +18,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
         <a href="#how" style="color:inherit">วิธีการทำงาน</a>
         <a href="#rules" style="color:inherit">กติกาสัญญา</a>
         <a href="#pricing" style="color:inherit">ราคา</a>
+        <a href="#gpu" style="color:inherit">เช่า GPU</a>
         <a href="#faq" style="color:inherit">คำถามที่พบบ่อย</a>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
@@ -154,6 +155,31 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
     <div class="faint" style="margin-top:18px;font-size:13px">* ราคายังไม่รวม VAT · องค์กรที่ต้องการเกิน 500 M ติดต่อฝ่ายขายเพื่อทำสัญญาเฉพาะ</div>
   </div>
 
+  <!-- gpu rental -->
+  <?php if (!empty($gpuPackages)): ?>
+  <div id="gpu" style="max-width:1180px;margin:0 auto;padding:56px 28px 20px">
+    <div class="mono" style="font-size:12.5px;color:var(--accent);letter-spacing:.14em">GPU RENTAL</div>
+    <h2 style="margin:12px 0 0;font-size:34px">เช่าใช้ GPU สำหรับงาน AI</h2>
+    <p class="muted" style="margin:12px 0 0;max-width:580px;font-size:15px;line-height:1.7">1 การ์ดจอ = 1 API Key · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — เลือกทำสัญญาแยก หรือรับแถมจากแพ็กเกจ AI</p>
+    <div class="gpu-price-grid" style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($gpuPackages))) ?>,1fr);gap:18px;margin-top:32px">
+      <?php foreach ($gpuPackages as $g): $gt = (int)$g['units'] * (int)$g['sale_price']; ?>
+        <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+          <?php if (!empty($g['promo_label'])): ?>
+            <div style="display:inline-block;font:600 11px var(--sans);background:var(--accent2);color:#03251f;border-radius:6px;padding:4px 9px;margin-bottom:12px;max-width:100%"><?= e($g['promo_label']) ?></div>
+          <?php endif; ?>
+          <div style="font-weight:600;font-size:16px"><?= e($g['name']) ?></div>
+          <div class="mono" style="font-size:40px;font-weight:600;margin-top:12px"><?= (int)$g['units'] ?></div>
+          <div style="font-size:13px;opacity:.7;margin-top:2px">การ์ดจอ<?= $g['note'] ? ' · ' . e($g['note']) : '' ?></div>
+          <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
+          <div style="font-size:15px;font-weight:600"><?= baht($gt) ?></div>
+          <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($g['sale_price']) ?> ต่อการ์ด</div>
+          <a class="btn btn-block" style="margin-top:auto;background:var(--sunk);color:var(--text);border:1px solid var(--border)" href="<?= e($primaryHref) ?>">เริ่มเช่า GPU</a>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- faq -->
   <div id="faq" style="max-width:1180px;margin:0 auto;padding:64px 28px 90px">
     <h2 style="margin:0 0 26px;font-size:28px">คำถามที่พบบ่อย</h2>
@@ -185,7 +211,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
 @media (max-width:900px){
   .hero-grid{grid-template-columns:1fr!important}
   .how-grid{grid-template-columns:repeat(2,1fr)!important}
-  .rules-grid,.price-grid,.faq-grid{grid-template-columns:1fr!important}
+  .rules-grid,.price-grid,.faq-grid,.gpu-price-grid{grid-template-columns:1fr!important}
   .nav-links{display:none!important}
 }
 </style>

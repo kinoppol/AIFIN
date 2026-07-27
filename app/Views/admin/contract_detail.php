@@ -100,6 +100,32 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
           <?php if (!$seats): ?><div class="muted" style="font-size:12.5px">ยังไม่มีสิทธิ์ที่จัดหาสำเร็จ</div><?php endif; ?>
         </div>
       </div>
+
+      <!-- GPU cards & API keys -->
+      <?php if ((int)$c['gpu_total'] > 0 || $apikeys): ?>
+      <div class="card card-pad">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:600;font-size:15px">การ์ด GPU &amp; API Keys</div>
+          <span class="mono" style="font-size:13px">เหลือ <?= (int)$c['gpu_remaining'] ?>/<?= (int)$c['gpu_total'] ?> การ์ด</span>
+        </div>
+        <div class="stack" style="gap:10px;margin-top:12px">
+          <?php foreach ($apikeys as $k):
+            $ks = ['requested'=>['pill-wait','รอจัดหา'],'provisioning'=>['pill-info','กำลังจัดหา'],'active'=>['pill-ok','ใช้งานได้'],'failed'=>['pill-bad','ล้มเหลว']][$k['status']] ?? ['pill-off',$k['status']]; ?>
+            <div style="border:1px solid var(--border);border-radius:10px;background:var(--sunk);padding:10px 12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <span class="mono faint" style="font-size:12px"><?= e($k['key_no']) ?><?= $k['label'] ? ' · ' . e($k['label']) : '' ?></span>
+                <span class="pill <?= $ks[0] ?>"><?= e($ks[1]) ?></span>
+              </div>
+              <?php if ($k['status'] === 'active'): ?>
+                <div class="mono muted" style="font-size:11.5px;margin-top:6px;word-break:break-all"><?= e($k['base_url']) ?></div>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+          <?php if (!$apikeys): ?><div class="muted" style="font-size:12.5px">ยังไม่มีคำขอ API Key</div><?php endif; ?>
+        </div>
+        <a class="btn btn-light btn-sm" style="margin-top:12px" href="<?= e(url('admin/gpu')) ?>">ไปหน้าจัดหา API Key →</a>
+      </div>
+      <?php endif; ?>
     </div>
   </div>
 </div>

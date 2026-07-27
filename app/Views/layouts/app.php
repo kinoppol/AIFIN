@@ -29,6 +29,7 @@ $nav = function (string $key) use ($active) {
       <div class="group">หน่วย &amp; สิทธิ์</div>
       <a class="<?= $nav('wallet') ?>" href="<?= e(url('admin/wallets')) ?>">คลังหน่วยลูกค้า</a>
       <a class="<?= $nav('redeem') ?>" href="<?= e(url('admin/redeem')) ?>">คำขอแลกสิทธิ์<?php if ($badges['redeem']): ?><span class="count-badge"><?= (int)$badges['redeem'] ?></span><?php endif; ?></a>
+      <a class="<?= $nav('gpu') ?>" href="<?= e(url('admin/gpu')) ?>">GPU &amp; API Keys<?php if (!empty($badges['gpu'])): ?><span class="count-badge"><?= (int)$badges['gpu'] ?></span><?php endif; ?></a>
       <div class="group">การขาย</div>
       <a class="<?= $nav('pack') ?>" href="<?= e(url('admin/packages')) ?>">แพ็กเกจ &amp; โปรโมชั่น</a>
       <div class="group">ระบบ</div>

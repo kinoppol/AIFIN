@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Config;
+use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
@@ -44,7 +45,7 @@ class ContractService
      *
      * @return int contract id
      */
-    public function purchase(int $userId, string $customerName, int $units, int $pricePerM, ?int $packageId = null, ?int $contractId = null): int
+    public function purchase(int $userId, string $customerName, int $units, int $pricePerM, ?int $packageId = null, ?int $contractId = null, int $bonusGpu = 0): int
     {
         if ($units <= 0) {
             throw new RuntimeException('จำนวนหน่วยต้องมากกว่า 0');
@@ -92,6 +93,23 @@ class ContractService
                 'balance'     => $balance,
                 'type'        => 'purchase',
             ]);
+
+            // Bundled/bonus GPU cards from an AI package.
+            if ($bonusGpu > 0) {
+                $cc = Contract::find($contractId);
+                Contract::update($contractId, [
+                    'gpu_total'     => (int) $cc['gpu_total'] + $bonusGpu,
+                    'gpu_remaining' => (int) $cc['gpu_remaining'] + $bonusGpu,
+                ]);
+                UnitLedger::insert([
+                    'contract_id' => $contractId,
+                    'entry_date'  => $today,
+                    'description' => "แถมการ์ด GPU {$bonusGpu} ตัว (แพ็กเกจ {$pkgName})",
+                    'amount'      => 0,
+                    'balance'     => $balance,
+                    'type'        => 'adjust',
+                ]);
+            }
 
             $db->commit();
             return $contractId;
@@ -276,5 +294,150 @@ class ContractService
         // Return the contract to a normal derived status.
         Contract::update((int) $x['contract_id'], ['status' => 'active']);
         Contract::refreshStatus((int) $x['contract_id']);
+    }
+
+    // --- GPU rental ---------------------------------------------------------
+
+    /**
+     * Buy GPU cards. Creates a GPU-only contract if $contractId is null (0 M
+     * units), otherwise adds cards to an existing contract's wallet.
+     */
+    public function purchaseGpu(int $userId, string $customerName, int $cards, int $pricePerCard, ?int $packageId = null, ?int $contractId = null): int
+    {
+        if ($cards <= 0) {
+            throw new RuntimeException('จำนวนการ์ดต้องมากกว่า 0');
+        }
+        $db = $this->db();
+        $db->beginTransaction();
+        try {
+            $today = date('Y-m-d');
+            $pkgName = $packageId ? (Package::find($packageId)['name'] ?? 'แพ็กเกจ GPU') : 'กำหนดเอง';
+            if ($contractId === null) {
+                $baseEnd = date('Y-m-d', strtotime("{$today} +{$this->contractMonths()} months"));
+                $contractId = Contract::insert([
+                    'contract_no'    => Contract::nextNo(),
+                    'user_id'        => $userId,
+                    'package_id'     => $packageId,
+                    'customer_name'  => $customerName,
+                    'units_total'    => 0,
+                    'units_remaining' => 0,
+                    'gpu_total'      => $cards,
+                    'gpu_remaining'  => $cards,
+                    'unit_days'      => $this->unitDays(),
+                    'price_per_m'    => 0,
+                    'start_date'     => $today,
+                    'base_end_date'  => $baseEnd,
+                    'end_date'       => $baseEnd,
+                    'status'         => 'active',
+                ]);
+            } else {
+                $c = Contract::find($contractId);
+                if (!$c) {
+                    throw new RuntimeException('ไม่พบสัญญา');
+                }
+                Contract::update($contractId, [
+                    'gpu_total'     => (int) $c['gpu_total'] + $cards,
+                    'gpu_remaining' => (int) $c['gpu_remaining'] + $cards,
+                ]);
+            }
+            $c = Contract::find($contractId);
+            UnitLedger::insert([
+                'contract_id' => $contractId,
+                'entry_date'  => $today,
+                'description' => "ซื้อการ์ด GPU {$cards} ตัว ({$pkgName} @ " . baht($pricePerCard) . "/การ์ด)",
+                'amount'      => 0,
+                'balance'     => (int) $c['units_remaining'],
+                'type'        => 'adjust',
+            ]);
+            $db->commit();
+            return $contractId;
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Customer requests an API key. Consumes one GPU card (1 card = 1 key) and
+     * queues it for the admin to provision with a BASE URL + key.
+     */
+    public function requestApiKey(int $contractId, string $label): int
+    {
+        $db = $this->db();
+        $db->beginTransaction();
+        try {
+            $c = Contract::find($contractId);
+            if (!$c) {
+                throw new RuntimeException('ไม่พบสัญญา');
+            }
+            if ((int) $c['gpu_remaining'] < 1) {
+                throw new RuntimeException('การ์ด GPU คงเหลือไม่พอสำหรับสร้าง API Key');
+            }
+            Contract::update($contractId, ['gpu_remaining' => (int) $c['gpu_remaining'] - 1]);
+            $keyNo = ApiKey::nextNo();
+            $id = ApiKey::insert([
+                'key_no'      => $keyNo,
+                'contract_id' => $contractId,
+                'label'       => $label !== '' ? $label : null,
+                'status'      => 'requested',
+            ]);
+            UnitLedger::insert([
+                'contract_id' => $contractId,
+                'entry_date'  => date('Y-m-d'),
+                'description' => "ขอสร้าง API Key {$keyNo} (ใช้การ์ด GPU 1 ตัว)",
+                'amount'      => 0,
+                'balance'     => (int) $c['units_remaining'],
+                'type'        => 'adjust',
+            ]);
+            $db->commit();
+            return $id;
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+
+    /** Admin provisions a requested key with the BASE URL + API key. */
+    public function provisionApiKey(int $id, string $baseUrl, string $apiKey): void
+    {
+        $k = ApiKey::find($id);
+        if (!$k) {
+            throw new RuntimeException('ไม่พบคำขอ API Key');
+        }
+        if (!filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            throw new RuntimeException('BASE URL ไม่ถูกต้อง');
+        }
+        if (trim($apiKey) === '') {
+            throw new RuntimeException('กรุณากรอก API Key');
+        }
+        ApiKey::update($id, [
+            'base_url'       => $baseUrl,
+            'api_key'        => trim($apiKey),
+            'status'         => 'active',
+            'provisioned_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * Change an API key's status. Marking a not-yet-active request 'failed'
+     * refunds the reserved GPU card back to the contract.
+     */
+    public function setApiKeyStatus(int $id, string $status): void
+    {
+        $allowed = ['requested', 'provisioning', 'active', 'failed'];
+        if (!in_array($status, $allowed, true)) {
+            throw new RuntimeException('สถานะไม่ถูกต้อง');
+        }
+        $k = ApiKey::find($id);
+        if (!$k) {
+            throw new RuntimeException('ไม่พบคำขอ API Key');
+        }
+        if ($status === 'failed' && $k['status'] !== 'active') {
+            $c = Contract::find((int) $k['contract_id']);
+            if ($c) {
+                Contract::update((int) $k['contract_id'], ['gpu_remaining' => (int) $c['gpu_remaining'] + 1]);
+            }
+        }
+        ApiKey::update($id, ['status' => $status]);
     }
 }

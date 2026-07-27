@@ -25,6 +25,7 @@ use App\Controllers\Admin\WalletController;
 use App\Controllers\Admin\RedeemController;
 use App\Controllers\Admin\ExtensionController;
 use App\Controllers\Admin\PackageController;
+use App\Controllers\Admin\ApiKeyController;
 use App\Controllers\Admin\MigrationController;
 
 // Public
@@ -42,6 +43,8 @@ $router->post('account/buy',     [AccountController::class, 'buy']);
 $router->get('account/contract', [AccountController::class, 'contract']);
 $router->post('account/redeem',  [AccountController::class, 'redeem']);
 $router->post('account/extend',  [AccountController::class, 'requestExtension']);
+$router->post('account/buy-gpu', [AccountController::class, 'buyGpu']);
+$router->post('account/apikey',  [AccountController::class, 'requestApiKey']);
 
 // Admin area
 $router->get('admin',                    [DashboardController::class, 'index']);
@@ -58,6 +61,9 @@ $router->post('admin/extensions/reject', [ExtensionController::class, 'reject'])
 $router->get('admin/packages',           [PackageController::class, 'index']);
 $router->post('admin/packages',          [PackageController::class, 'store']);
 $router->post('admin/packages/update',   [PackageController::class, 'update']);
+$router->get('admin/gpu',                [ApiKeyController::class, 'index']);
+$router->post('admin/gpu/provision',     [ApiKeyController::class, 'provision']);
+$router->post('admin/gpu/status',        [ApiKeyController::class, 'updateStatus']);
 $router->get('admin/migrations',         [MigrationController::class, 'index']);
 $router->post('admin/migrations/run',    [MigrationController::class, 'run']);
 

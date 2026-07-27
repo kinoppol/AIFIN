@@ -28,11 +28,14 @@ class PackageController extends Controller
             $this->flash('danger', 'รหัสแพ็กเกจว่างหรือซ้ำกับที่มีอยู่');
             $this->redirect('admin/packages');
         }
+        $kind = in_array($this->input('kind'), ['ai', 'gpu'], true) ? $this->input('kind') : 'ai';
         Package::insert([
             'code'         => $code,
+            'kind'         => $kind,
             'name'         => trim((string) $this->input('name')),
             'note'         => trim((string) $this->input('note')),
             'units'        => (int) $this->input('units'),
+            'bonus_gpu'    => $kind === 'ai' ? max(0, (int) $this->input('bonus_gpu')) : 0,
             'unit_days'    => (int) config('app.unit_days', 30),
             'list_price'   => (int) $this->input('list_price'),
             'sale_price'   => (int) $this->input('sale_price'),
@@ -53,17 +56,23 @@ class PackageController extends Controller
         $this->requireAdmin();
         Csrf::verify();
         $id = (int) $this->input('id');
-        if (!Package::find($id)) {
+        $pkg = Package::find($id);
+        if (!$pkg) {
             $this->flash('danger', 'ไม่พบแพ็กเกจ');
             $this->redirect('admin/packages');
         }
-        Package::update($id, [
+        $data = [
             'sale_price'  => (int) $this->input('sale_price'),
             'promo_label' => trim((string) $this->input('promo_label')) ?: null,
             'status'      => in_array($this->input('status'), ['active', 'promo', 'closed'], true)
                                 ? $this->input('status') : 'active',
-        ]);
-        $this->flash('success', 'อัปเดตราคาแพ็กเกจแล้ว');
+        ];
+        // Bundled free GPU cards apply only to AI packages.
+        if ($pkg['kind'] === 'ai') {
+            $data['bonus_gpu'] = max(0, (int) $this->input('bonus_gpu'));
+        }
+        Package::update($id, $data);
+        $this->flash('success', 'อัปเดตแพ็กเกจแล้ว');
         $this->redirect('admin/packages');
     }
 }

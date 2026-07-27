@@ -4,6 +4,7 @@ namespace App\Controllers\Customer;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
+use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
@@ -28,9 +29,10 @@ class AccountController extends Controller
     {
         $this->requireAuth();
         $this->render('customer/buy', [
-            'title'    => 'ซื้อหน่วย AI Pro',
-            'packages' => Package::sellable(),
-            'contracts'=> Contract::forUser(Auth::id()),
+            'title'       => 'ซื้อหน่วย AI Pro / GPU',
+            'packages'    => Package::sellableKind('ai'),
+            'gpuPackages' => Package::sellableKind('gpu'),
+            'contracts'   => Contract::forUser(Auth::id()),
         ], 'layouts/customer');
     }
 
@@ -53,14 +55,63 @@ class AccountController extends Controller
                 (int) $pkg['units'],
                 (int) $pkg['sale_price'],
                 $packageId,
-                null
+                null,
+                (int) $pkg['bonus_gpu']
             );
-            $this->flash('success', "ทำสัญญาสำเร็จ ได้รับ {$pkg['units']} M เข้าคลังแล้ว");
+            $bonusMsg = (int) $pkg['bonus_gpu'] > 0 ? " + แถมการ์ด GPU {$pkg['bonus_gpu']} ตัว" : '';
+            $this->flash('success', "ทำสัญญาสำเร็จ ได้รับ {$pkg['units']} M{$bonusMsg} เข้าคลังแล้ว");
             $this->redirect('account/contract?id=' . $id);
         } catch (\Throwable $e) {
             $this->flash('danger', $e->getMessage());
             $this->redirect('account/buy');
         }
+    }
+
+    public function buyGpu(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $user = Auth::user();
+        $packageId = (int) $this->input('package_id');
+        $pkg = Package::find($packageId);
+        if (!$pkg || $pkg['kind'] !== 'gpu') {
+            $this->flash('danger', 'ไม่พบแพ็กเกจ GPU ที่เลือก');
+            $this->redirect('account/buy');
+        }
+        try {
+            $id = (new ContractService())->purchaseGpu(
+                $user['id'],
+                $user['name'],
+                (int) $pkg['units'],
+                (int) $pkg['sale_price'],
+                $packageId,
+                null
+            );
+            $this->flash('success', "ทำสัญญา GPU สำเร็จ ได้รับการ์ด {$pkg['units']} ตัวเข้าคลังแล้ว");
+            $this->redirect('account/contract?id=' . $id);
+        } catch (\Throwable $e) {
+            $this->flash('danger', $e->getMessage());
+            $this->redirect('account/buy');
+        }
+    }
+
+    public function requestApiKey(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $contractId = (int) $this->input('contract_id');
+        $c = Contract::find($contractId);
+        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+            $this->flash('danger', 'ไม่พบสัญญา');
+            $this->redirect('account');
+        }
+        try {
+            (new ContractService())->requestApiKey($contractId, trim((string) $this->input('label')));
+            $this->flash('success', 'ส่งคำขอสร้าง API Key แล้ว รอผู้ดูแลจัดหา');
+        } catch (\Throwable $e) {
+            $this->flash('danger', $e->getMessage());
+        }
+        $this->redirect('account/contract?id=' . $contractId);
     }
 
     public function contract(): void
@@ -79,6 +130,7 @@ class AccountController extends Controller
             'seats'   => Redemption::seatsForContract($id),
             'redeems' => Redemption::forContract($id),
             'exts'    => ExtensionRequest::forContract($id),
+            'apikeys' => ApiKey::forContract($id),
             'maxExt'  => (int) config('app.max_extension_months', 6),
         ], 'layouts/customer');
     }

@@ -33,5 +33,35 @@ $unitDays = (int) config('app.unit_days', 30);
   <?php endforeach; ?>
   <?php if (!$packages): ?><div class="card card-pad muted">ยังไม่มีแพ็กเกจเปิดขาย</div><?php endif; ?>
 </div>
+
+<?php if (!empty($gpuPackages)): ?>
+<div style="margin-top:44px">
+  <h2 style="margin:0 0 4px;font-size:22px">เช่าใช้ GPU</h2>
+  <p class="muted" style="margin:0 0 20px;font-size:14px">1 การ์ดจอ = 1 API Key · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — ทำสัญญาแยกได้ หรือรับแถมจากแพ็กเกจ AI</p>
+  <div style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($gpuPackages))) ?>,1fr);gap:18px" class="gpu-grid">
+    <?php foreach ($gpuPackages as $g):
+      $gtotal = (int)$g['units'] * (int)$g['sale_price']; ?>
+      <div class="card card-pad" style="display:flex;flex-direction:column">
+        <?php if (!empty($g['promo_label'])): ?>
+          <div style="display:inline-block;font:600 11px var(--sans);background:var(--accent2);color:#03251f;border-radius:6px;padding:4px 9px;margin-bottom:12px;max-width:100%"><?= e($g['promo_label']) ?></div>
+        <?php endif; ?>
+        <div style="font-weight:600;font-size:16px"><?= e($g['name']) ?></div>
+        <div class="mono" style="font-size:40px;font-weight:600;margin-top:12px"><?= (int)$g['units'] ?></div>
+        <div class="muted" style="font-size:13px;margin-top:2px">การ์ดจอ<?= $g['note'] ? ' · ' . e($g['note']) : '' ?></div>
+        <div style="height:1px;background:var(--border);margin:16px 0"></div>
+        <div style="font-size:16px;font-weight:600"><?= baht($gtotal) ?></div>
+        <div class="muted" style="font-size:13px;margin-top:4px"><?= baht($g['sale_price']) ?> ต่อการ์ด</div>
+        <form method="post" action="<?= e(url('account/buy-gpu')) ?>" style="margin-top:auto;padding-top:20px"
+              data-confirm="ทำสัญญา GPU แพ็กเกจ <?= e($g['name']) ?> (<?= (int)$g['units'] ?> การ์ด) มูลค่า <?= e(baht($gtotal)) ?>?" data-confirm-title="ยืนยันการเช่า GPU" data-confirm-ok="ทำสัญญา">
+          <?= csrf_field() ?>
+          <input type="hidden" name="package_id" value="<?= (int)$g['id'] ?>">
+          <button class="btn btn-primary btn-block" type="submit">เช่าแพ็กเกจนี้</button>
+        </form>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
+
 <p class="faint" style="margin-top:18px;font-size:13px">* ตัวอย่างระบบ — การทำสัญญาจะบันทึกลงฐานข้อมูลจริง แต่ไม่มีการตัดชำระเงินจริง</p>
-<style>@media(max-width:800px){.buy-grid{grid-template-columns:1fr!important}}</style>
+<style>@media(max-width:800px){.buy-grid,.gpu-grid{grid-template-columns:1fr!important}}</style>

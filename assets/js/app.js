@@ -152,6 +152,19 @@ document.addEventListener('input', function (e) {
   };
 })();
 
+// Toggle a blurred secret (API key) next to a [data-reveal] button.
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-reveal]');
+  if (b) {
+    var s = b.parentElement.querySelector('[data-secret]');
+    if (s) {
+      var hidden = s.style.filter !== 'none';
+      s.style.filter = hidden ? 'none' : 'blur(4px)';
+      b.textContent = hidden ? 'ซ่อน' : 'แสดง';
+    }
+  }
+});
+
 // Open a receipt (or any hidden block) referenced by [data-receipt-open="id"].
 document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-receipt-open]');

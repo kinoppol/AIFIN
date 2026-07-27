@@ -8,12 +8,19 @@
   <div class="card" style="overflow:hidden">
     <div class="table-wrap">
       <table class="data">
-        <thead><tr><th>แพ็กเกจ</th><th>หน่วย</th><th>ราคาปกติ/M</th><th>ราคาขาย/M</th><th>ช่วงโปรโมชั่น</th><th>สถานะ</th><th></th></tr></thead>
+        <thead><tr><th>แพ็กเกจ</th><th>หน่วย</th><th>ราคาปกติ/หน่วย</th><th>ราคาขาย/หน่วย</th><th>ช่วงโปรโมชั่น</th><th>สถานะ</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($packages as $p): ?>
           <tr>
-            <td><div style="font-weight:600"><?= e($p['name']) ?></div><div class="faint" style="font-size:12px;margin-top:2px"><?= e($p['note']) ?></div></td>
-            <td class="mono" style="font-weight:600"><?= units($p['units']) ?></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-weight:600"><?= e($p['name']) ?></span>
+                <?php if ($p['kind'] === 'gpu'): ?><span class="pill pill-info" style="font-size:10.5px;padding:2px 7px">GPU</span><?php endif; ?>
+                <?php if ($p['kind'] === 'ai' && (int)$p['bonus_gpu'] > 0): ?><span class="pill pill-ok" style="font-size:10.5px;padding:2px 7px">แถม GPU <?= (int)$p['bonus_gpu'] ?></span><?php endif; ?>
+              </div>
+              <div class="faint" style="font-size:12px;margin-top:2px"><?= e($p['note']) ?></div>
+            </td>
+            <td class="mono" style="font-weight:600"><?= (int)$p['units'] ?> <?= $p['kind'] === 'gpu' ? 'การ์ด' : 'M' ?></td>
             <td class="mono faint" style="text-decoration:line-through"><?= baht($p['list_price']) ?></td>
             <td class="mono" style="font-weight:600;color:var(--accent)"><?= baht($p['sale_price']) ?></td>
             <td class="muted" style="font-size:12.5px">
@@ -25,7 +32,7 @@
               <?php $st = ['active'=>['pill-ok','เปิดขาย'],'promo'=>['pill-info','กำลังโปรฯ'],'closed'=>['pill-off','ปิดแล้ว']][$p['status']] ?? ['pill-off',$p['status']]; ?>
               <span class="pill <?= $st[0] ?>"><?= e($st[1]) ?></span>
             </td>
-            <td><button class="btn btn-light btn-sm" type="button" onclick='editPack(<?= json_encode(["id"=>(int)$p["id"],"name"=>$p["name"],"sale"=>(int)$p["sale_price"],"promo"=>$p["promo_label"],"status"=>$p["status"]], JSON_UNESCAPED_UNICODE|JSON_HEX_APOS) ?>)'>แก้ราคา</button></td>
+            <td><button class="btn btn-light btn-sm" type="button" onclick='editPack(<?= json_encode(["id"=>(int)$p["id"],"name"=>$p["name"],"kind"=>$p["kind"],"bonus"=>(int)$p["bonus_gpu"],"sale"=>(int)$p["sale_price"],"promo"=>$p["promo_label"],"status"=>$p["status"]], JSON_UNESCAPED_UNICODE|JSON_HEX_APOS) ?>)'>แก้ไข</button></td>
           </tr>
         <?php endforeach; ?>
         <?php if (!$packages): ?><tr><td colspan="7" class="muted" style="text-align:center;padding:26px">ยังไม่มีแพ็กเกจ</td></tr><?php endif; ?>
@@ -47,11 +54,20 @@
       <div class="field" style="flex:1"><label>รหัส (code)</label><input class="input" name="code" required></div>
       <div class="field" style="flex:2"><label>ชื่อแพ็กเกจ</label><input class="input" name="name" required></div>
     </div>
-    <div class="field"><label>คำอธิบายสั้น</label><input class="input" name="note"></div>
+    <div class="field"><label>คำอธิบายสั้น (กลุ่มเป้าหมาย)</label><input class="input" name="note"></div>
     <div style="display:flex;gap:12px">
-      <div class="field" style="flex:1"><label>จำนวนหน่วย (M)</label><input class="input" type="number" name="units" min="1" required></div>
-      <div class="field" style="flex:1"><label>ราคาปกติ/M</label><input class="input" type="number" name="list_price" min="0" required></div>
-      <div class="field" style="flex:1"><label>ราคาขาย/M</label><input class="input" type="number" name="sale_price" min="0" required></div>
+      <div class="field" style="flex:1"><label>ประเภท</label>
+        <select class="input" name="kind" id="np-kind" onchange="npKind()">
+          <option value="ai">AI (หน่วย M)</option>
+          <option value="gpu">GPU (การ์ดจอ)</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1" id="np-bonus-wrap"><label>แถมการ์ด GPU (เฉพาะ AI)</label><input class="input" type="number" name="bonus_gpu" min="0" value="0"></div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label>จำนวน (<span id="np-unit">M</span>)</label><input class="input" type="number" name="units" min="1" required></div>
+      <div class="field" style="flex:1"><label>ราคาปกติ/หน่วย</label><input class="input" type="number" name="list_price" min="0" required></div>
+      <div class="field" style="flex:1"><label>ราคาขาย/หน่วย</label><input class="input" type="number" name="sale_price" min="0" required></div>
     </div>
     <div style="display:flex;gap:12px">
       <div class="field" style="flex:1"><label>ป้ายโปรฯ (ถ้ามี)</label><input class="input" name="promo_label"></div>
@@ -79,7 +95,8 @@
       <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <p class="muted" id="ep-name" style="margin:0 0 16px;font-size:13px"></p>
-    <div class="field"><label>ราคาขาย/M (บาท)</label><input class="input" type="number" name="sale_price" id="ep-sale" min="0" required></div>
+    <div class="field"><label>ราคาขาย/หน่วย (บาท)</label><input class="input" type="number" name="sale_price" id="ep-sale" min="0" required></div>
+    <div class="field" id="ep-bonus-wrap"><label>แถมการ์ด GPU (เฉพาะแพ็กเกจ AI)</label><input class="input" type="number" name="bonus_gpu" id="ep-bonus" min="0"></div>
     <div class="field"><label>ป้ายโปรฯ</label><input class="input" name="promo_label" id="ep-promo"></div>
     <div class="field"><label>สถานะ</label><select class="input" name="status" id="ep-status"><option value="active">เปิดขาย</option><option value="promo">กำลังโปรฯ</option><option value="closed">ปิด</option></select></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
@@ -89,12 +106,19 @@
   </form>
 </dialog>
 <script>
+function npKind(){
+  var gpu = document.getElementById('np-kind').value === 'gpu';
+  document.getElementById('np-unit').textContent = gpu ? 'การ์ด' : 'M';
+  document.getElementById('np-bonus-wrap').style.display = gpu ? 'none' : '';
+}
 function editPack(p){
   document.getElementById('ep-id').value=p.id;
-  document.getElementById('ep-name').textContent=p.name;
+  document.getElementById('ep-name').textContent=p.name+(p.kind==='gpu'?' (GPU)':'');
   document.getElementById('ep-sale').value=p.sale;
   document.getElementById('ep-promo').value=p.promo||'';
   document.getElementById('ep-status').value=p.status;
+  document.getElementById('ep-bonus').value=p.bonus||0;
+  document.getElementById('ep-bonus-wrap').style.display = p.kind==='ai' ? '' : 'none';
   document.getElementById('edit-pack').showModal();
 }
 </script>

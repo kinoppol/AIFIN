@@ -3,6 +3,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Csrf;
+use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
@@ -58,6 +59,7 @@ class ContractController extends Controller
             'c'        => $contract,
             'ledger'   => UnitLedger::forContract($id),
             'seats'    => Redemption::seatsForContract($id),
+            'apikeys'  => ApiKey::forContract($id),
             'exts'     => ExtensionRequest::forContract($id),
             'maxExt'   => (int) config('app.max_extension_months', 6),
             'badges'   => DashboardController::badges(),
@@ -80,7 +82,8 @@ class ContractController extends Controller
         }
         try {
             $svc = new ContractService();
-            $id = $svc->purchase($customerId, $customer['name'], $units, $price, $packageId, null);
+            $bonus = $packageId ? (int) (Package::find($packageId)['bonus_gpu'] ?? 0) : 0;
+            $id = $svc->purchase($customerId, $customer['name'], $units, $price, $packageId, null, $bonus);
             $this->flash('success', 'สร้างสัญญาและบันทึกการซื้อหน่วยเรียบร้อย');
             $this->redirect('admin/contracts/show?id=' . $id);
         } catch (\Throwable $e) {

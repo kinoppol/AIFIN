@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AIPRO Contracts** — a working PHP 8 / MariaDB web app for selling prepaid "AI Pro" access as contracts. It was built from a Claude Design handoff (the original prototype lives in `project/`; see [README.md](README.md)). The app is framework-free plain PHP (no Composer/vendor) so it runs on stock XAMPP.
 
-Domain rule that drives everything: **1 unit "M" = 30 days of access** (value fixed system-wide; only per-M price varies). Customers buy units into a **contract** (1-year term, extendable up to **+6 months** total), units sit in the contract wallet until **redeemed** against an email, which enqueues provisioning.
+Domain rule that drives everything: **1 unit "M" = 30 days of access** (value fixed system-wide; only per-M price varies). Customers buy units into a **contract** (1-year term, extendable up to **+6 months** total), units sit in the contract wallet until **redeemed** against an email, which enqueues provisioning. Redeem amount is capped by both remaining units and remaining contract days (`contract_max_redeem()`).
+
+**GPU rental** is a parallel resource on the same contracts (migration `003`): **1 unit "G" = one GPU card** (`contracts.gpu_total`/`gpu_remaining`). Cards come from dedicated GPU packages (`packages.kind='gpu'`) or are bundled free with an AI package (`packages.bonus_gpu`, admin-set). **1 card = 1 API key**: the customer requests a key (consumes a card), the admin provisions it with a **BASE URL + API key** (`api_keys` table), then the customer sees the active credentials; marking a not-yet-active key `failed` refunds the card. GPU logic lives in `ContractService` (`purchaseGpu`, `requestApiKey`, `provisionApiKey`, `setApiKeyStatus`); admin page is `admin/gpu`.
 
 ## Run / install
 

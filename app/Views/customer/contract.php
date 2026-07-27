@@ -93,6 +93,53 @@ $usedMonths = (int) $c['extension_months_used'];
         <?php if (!$redeems): ?><div class="faint" style="font-size:12.5px">ยังไม่มีคำขอแลกสิทธิ์</div><?php endif; ?>
       </div>
     </div>
+
+    <!-- GPU cards & API keys -->
+    <?php $gpuTotal = (int) $c['gpu_total']; $gpuRemaining = (int) $c['gpu_remaining']; ?>
+    <?php if ($gpuTotal > 0 || $apikeys): ?>
+    <div class="card card-pad">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:600;font-size:15px">การ์ด GPU &amp; API Keys</div>
+        <span class="mono" style="font-size:13px">เหลือ <?= $gpuRemaining ?>/<?= $gpuTotal ?> การ์ด</span>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:3px">1 การ์ดจอ = 1 API Key</div>
+      <?php if ($gpuRemaining >= 1): ?>
+        <form method="post" action="<?= e(url('account/apikey')) ?>" style="margin-top:12px"
+              data-confirm="ยืนยันขอสร้าง API Key (ใช้การ์ด GPU 1 ตัว)?" data-confirm-title="ขอสร้าง API Key" data-confirm-ok="ขอสร้าง">
+          <?= csrf_field() ?>
+          <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+          <div class="field"><label>ป้ายกำกับ (ไม่บังคับ)</label><input class="input" name="label" placeholder="เช่น production, dev"></div>
+          <button class="btn btn-primary btn-block" type="submit">ขอสร้าง API Key</button>
+        </form>
+      <?php else: ?>
+        <div class="faint" style="font-size:12.5px;margin-top:10px">การ์ด GPU ถูกใช้ครบแล้ว — ซื้อเพิ่มได้ที่หน้า “ซื้อหน่วย”</div>
+      <?php endif; ?>
+      <?php if ($apikeys): ?>
+        <div class="stack" style="gap:10px;margin-top:14px">
+          <?php foreach ($apikeys as $k):
+            $ks = ['requested'=>['pill-wait','รอจัดหา'],'provisioning'=>['pill-info','กำลังจัดหา'],'active'=>['pill-ok','ใช้งานได้'],'failed'=>['pill-bad','ล้มเหลว']][$k['status']] ?? ['pill-off',$k['status']]; ?>
+            <div style="border:1px solid var(--border);border-radius:10px;background:var(--sunk);padding:11px 12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <span class="mono faint" style="font-size:12px"><?= e($k['key_no']) ?><?= $k['label'] ? ' · ' . e($k['label']) : '' ?></span>
+                <span class="pill <?= $ks[0] ?>"><?= e($ks[1]) ?></span>
+              </div>
+              <?php if ($k['status'] === 'active'): ?>
+                <div style="margin-top:8px;display:grid;gap:6px;font-size:12px">
+                  <div><span class="faint">BASE URL:</span> <span class="mono" style="word-break:break-all"><?= e($k['base_url']) ?></span></div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="faint">API Key:</span>
+                    <code class="mono" data-secret style="word-break:break-all;filter:blur(4px)"><?= e($k['api_key']) ?></code>
+                    <button type="button" class="btn btn-light btn-sm" data-reveal>แสดง</button>
+                  </div>
+                </div>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
   </div>
 </div>
 <style>@media(max-width:800px){.cc-row{grid-template-columns:1fr!important}}</style>

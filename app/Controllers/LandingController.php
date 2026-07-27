@@ -9,7 +9,8 @@ class LandingController extends Controller
     public function index(): void
     {
         $this->render('landing/index', [
-            'packages' => Package::sellable(),
+            'packages'    => Package::sellableKind('ai'),
+            'gpuPackages' => Package::sellableKind('gpu'),
         ], 'layouts/public');
     }
 }
