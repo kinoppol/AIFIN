@@ -109,13 +109,16 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
         <div style="font-weight:600;font-size:15px">การ์ด GPU &amp; API Keys</div>
         <span class="mono" style="font-size:13px">เหลือ <?= $gpuRemaining ?>/<?= $gpuTotal ?> การ์ด</span>
       </div>
-      <div class="muted" style="font-size:12px;margin-top:3px">1 การ์ดจอ = 1 API Key</div>
+      <div class="muted" style="font-size:12px;margin-top:3px">1 การ์ด GPU (G) = 30 วันใช้งาน · เลือกจำนวนการ์ดต่อ 1 API Key ได้</div>
       <?php if ($gpuRemaining >= 1): ?>
         <form method="post" action="<?= e(url('account/apikey')) ?>" style="margin-top:12px"
-              data-confirm="ยืนยันขอสร้าง API Key (ใช้การ์ด GPU 1 ตัว)?" data-confirm-title="ขอสร้าง API Key" data-confirm-ok="ขอสร้าง">
+              data-confirm="ยืนยันขอสร้าง API Key ตามจำนวนการ์ด GPU ที่ระบุ?" data-confirm-title="ขอสร้าง API Key" data-confirm-ok="ขอสร้าง">
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
           <div class="field"><label>ป้ายกำกับ (ไม่บังคับ)</label><input class="input" name="label" placeholder="เช่น production, dev"></div>
+          <div class="field"><label>จำนวนการ์ด GPU (คงเหลือ <?= $gpuRemaining ?>)</label>
+            <input class="input" type="number" name="gpu_units" min="1" max="<?= $gpuRemaining ?>" value="1" data-gpu-units data-unit-days="<?= (int)$c['unit_days'] ?>"></div>
+          <div class="muted" style="font-size:12px;margin-bottom:8px">= ใช้งานได้ <b data-gpu-days style="color:var(--text)"><?= (int)$c['unit_days'] ?></b> วัน</div>
           <button class="btn btn-primary btn-block" type="submit"><?= icon('key', 15) ?>ขอสร้าง API Key</button>
         </form>
       <?php else: ?>
@@ -130,6 +133,7 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
                 <span class="mono faint" style="font-size:12px"><?= e($k['key_no']) ?><?= $k['label'] ? ' · ' . e($k['label']) : '' ?></span>
                 <span class="pill <?= $ks[0] ?>"><?= e($ks[1]) ?></span>
               </div>
+              <div class="faint" style="font-size:11px;margin-top:3px"><?= (int)($k['gpu_units'] ?? 1) ?> การ์ด · <?= (int)($k['days'] ?? 30) ?> วัน</div>
               <?php if ($k['status'] === 'active'): ?>
                 <div style="margin-top:8px;display:grid;gap:6px;font-size:12px">
                   <div><span class="faint">BASE URL:</span> <span class="mono" style="word-break:break-all"><?= e($k['base_url']) ?></span></div>

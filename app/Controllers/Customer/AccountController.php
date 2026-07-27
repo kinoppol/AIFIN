@@ -117,7 +117,7 @@ class AccountController extends Controller
             $this->redirect('account');
         }
         try {
-            (new ContractService())->requestApiKey($contractId, trim((string) $this->input('label')));
+            (new ContractService())->requestApiKey($contractId, trim((string) $this->input('label')), max(1, (int) $this->input('gpu_units', 1)));
             $this->flash('success', 'ส่งคำขอสร้าง API Key แล้ว รอผู้ดูแลจัดหา');
         } catch (\Throwable $e) {
             $this->flash('danger', $e->getMessage());

@@ -13,7 +13,7 @@ $statusPill = function (string $s): string {
 ?>
 <div class="page-cols">
   <div class="card card-pad muted" style="font-size:13.5px;line-height:1.7">
-    คำขอสร้าง API Key จากลูกค้า — <b style="color:var(--text)">1 การ์ดจอ = 1 API Key</b> จัดหาโดยระบุ <b style="color:var(--text)">BASE URL</b> และ <b style="color:var(--text)">API Key</b> แล้วส่งให้ลูกค้า
+    คำขอสร้าง API Key จากลูกค้า — <b style="color:var(--text)">1 การ์ด GPU (G) = 30 วันใช้งาน</b> จัดหาโดยระบุ <b style="color:var(--text)">BASE URL</b> และ <b style="color:var(--text)">API Key</b> แล้วส่งให้ลูกค้า
     <?php if ($requested): ?><br><b style="color:var(--warn)">รอจัดหา <?= (int)$requested ?> รายการ</b><?php endif; ?>
   </div>
 
@@ -26,6 +26,7 @@ $statusPill = function (string $s): string {
             <div class="mono" style="font-size:12px;color:var(--accent)"><?= e($k['key_no']) ?></div>
             <div style="font-weight:600;font-size:15px;margin-top:4px"><?= e($k['customer_name']) ?></div>
             <div class="muted" style="font-size:12.5px;margin-top:2px"><?= e($k['contract_no']) ?><?= $k['label'] ? ' · ' . e($k['label']) : '' ?></div>
+            <div class="faint" style="font-size:11.5px;margin-top:2px"><?= (int)($k['gpu_units'] ?? 1) ?> การ์ด · <?= (int)($k['days'] ?? 30) ?> วันใช้งาน</div>
           </div>
           <?= $statusPill($k['status']) ?>
         </div>

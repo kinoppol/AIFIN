@@ -37,7 +37,7 @@ $unitDays = (int) config('app.unit_days', 30);
 <?php if (!empty($gpuPackages)): ?>
 <div style="margin-top:44px">
   <h2 style="margin:0 0 4px;font-size:22px">เช่าใช้ GPU</h2>
-  <p class="muted" style="margin:0 0 20px;font-size:14px">1 การ์ดจอ = 1 API Key · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — ทำสัญญาแยกได้ หรือรับแถมจากแพ็กเกจ AI</p>
+  <p class="muted" style="margin:0 0 20px;font-size:14px">1 การ์ด GPU (G) = 30 วันใช้งาน · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — ทำสัญญาแยกได้ หรือรับแถมจากแพ็กเกจ AI</p>
   <div style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($gpuPackages))) ?>,1fr);gap:18px" class="gpu-grid">
     <?php foreach ($gpuPackages as $g):
       $gtotal = (int)$g['units'] * (int)$g['sale_price']; ?>

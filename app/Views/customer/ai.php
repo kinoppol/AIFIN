@@ -44,7 +44,7 @@ $akStatus = function (string $s): array {
 <div class="card" style="overflow:hidden">
   <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <?= icon('key', 18) ?><span style="font-weight:600">API Keys (GPU)</span>
-    <span class="muted" style="font-size:12px;margin-left:auto">1 การ์ดจอ = 1 API Key</span>
+    <span class="muted" style="font-size:12px;margin-left:auto">1 การ์ด GPU (G) = 30 วันใช้งาน</span>
   </div>
   <div class="table-wrap">
     <table class="data">
@@ -52,7 +52,7 @@ $akStatus = function (string $s): array {
       <tbody>
       <?php foreach ($apikeys as $k): [$cls, $lbl] = $akStatus($k['status']); ?>
         <tr>
-          <td class="mono" style="font-weight:600;font-size:12px;color:var(--accent)"><?= e($k['key_no']) ?><?php if ($k['label']): ?><div class="faint" style="font-weight:400;margin-top:2px"><?= e($k['label']) ?></div><?php endif; ?></td>
+          <td class="mono" style="font-weight:600;font-size:12px;color:var(--accent)"><?= e($k['key_no']) ?><?php if ($k['label']): ?><div class="faint" style="font-weight:400;margin-top:2px"><?= e($k['label']) ?></div><?php endif; ?><div class="faint" style="font-weight:400;margin-top:2px"><?= (int)($k['gpu_units'] ?? 1) ?> การ์ด · <?= (int)($k['days'] ?? 30) ?> วัน</div></td>
           <td class="mono faint" style="font-size:12px"><?= e($k['contract_no']) ?></td>
           <td>
             <?php if ($k['status'] === 'active'): ?>

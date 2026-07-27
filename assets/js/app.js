@@ -71,6 +71,13 @@ function refreshRedeem(el) {
 }
 document.addEventListener('input', function (e) {
   if (e.target.matches && e.target.matches('[data-redeem-units]')) refreshRedeem(e.target);
+  // GPU units -> API key valid days preview.
+  if (e.target.matches && e.target.matches('[data-gpu-units]')) {
+    var d = (parseInt(e.target.value, 10) || 0) * (parseInt(e.target.getAttribute('data-unit-days'), 10) || 30);
+    var form = e.target.closest('form');
+    var out = form && form.querySelector('[data-gpu-days]');
+    if (out) out.textContent = d;
+  }
 });
 
 // --- Styled modal system (replaces native alert/confirm) --------------------

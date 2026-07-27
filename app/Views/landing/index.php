@@ -160,7 +160,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
   <div id="gpu" style="max-width:1180px;margin:0 auto;padding:56px 28px 20px">
     <div class="mono" style="font-size:12.5px;color:var(--accent);letter-spacing:.14em">GPU RENTAL</div>
     <h2 style="margin:12px 0 0;font-size:34px">เช่าใช้ GPU สำหรับงาน AI</h2>
-    <p class="muted" style="margin:12px 0 0;max-width:580px;font-size:15px;line-height:1.7">1 การ์ดจอ = 1 API Key · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — เลือกทำสัญญาแยก หรือรับแถมจากแพ็กเกจ AI</p>
+    <p class="muted" style="margin:12px 0 0;max-width:580px;font-size:15px;line-height:1.7">1 การ์ด GPU (G) = 30 วันใช้งาน · การ์ดจอระดับกลาง ค่าเช่าอ้างอิงราว ฿300/เดือน — เลือกทำสัญญาแยก หรือรับแถมจากแพ็กเกจ AI</p>
     <div class="gpu-price-grid" style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($gpuPackages))) ?>,1fr);gap:18px;margin-top:32px">
       <?php foreach ($gpuPackages as $g): $gt = (int)$g['units'] * (int)$g['sale_price']; ?>
         <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;border:1px solid var(--border);background:var(--surface);color:var(--text)">

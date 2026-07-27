@@ -376,8 +376,15 @@ class ContractService
      * Customer requests an API key. Consumes one GPU card (1 card = 1 key) and
      * queues it for the admin to provision with a BASE URL + key.
      */
-    public function requestApiKey(int $contractId, string $label): int
+    /**
+     * Customer requests an API key spending $gpuUnits GPU cards (1 G = 30 days).
+     * The key will be valid for gpuUnits * unit_days days from provisioning.
+     */
+    public function requestApiKey(int $contractId, string $label, int $gpuUnits = 1): int
     {
+        if ($gpuUnits < 1) {
+            throw new RuntimeException('จำนวนการ์ด GPU ต้องอย่างน้อย 1');
+        }
         $db = $this->db();
         $db->beginTransaction();
         try {
@@ -385,25 +392,28 @@ class ContractService
             if (!$c) {
                 throw new RuntimeException('ไม่พบสัญญา');
             }
-            if ((int) $c['gpu_remaining'] < 1) {
+            if ((int) $c['gpu_remaining'] < $gpuUnits) {
                 throw new RuntimeException('การ์ด GPU คงเหลือไม่พอสำหรับสร้าง API Key');
             }
-            $newGpu = (int) $c['gpu_remaining'] - 1;
+            $days = $gpuUnits * $this->unitDays();
+            $newGpu = (int) $c['gpu_remaining'] - $gpuUnits;
             Contract::update($contractId, ['gpu_remaining' => $newGpu]);
             $keyNo = ApiKey::nextNo();
             $id = ApiKey::insert([
                 'key_no'      => $keyNo,
                 'contract_id' => $contractId,
+                'gpu_units'   => $gpuUnits,
+                'days'        => $days,
                 'label'       => $label !== '' ? $label : null,
                 'status'      => 'requested',
             ]);
             UnitLedger::insert([
                 'contract_id' => $contractId,
                 'entry_date'  => date('Y-m-d'),
-                'description' => "ขอสร้าง API Key {$keyNo} (ใช้การ์ด GPU 1 ตัว)",
+                'description' => "ขอสร้าง API Key {$keyNo} (ใช้การ์ด GPU {$gpuUnits} ตัว = {$days} วัน)",
                 'amount'      => 0,
                 'balance'     => (int) $c['units_remaining'],
-                'gpu_amount'  => -1,
+                'gpu_amount'  => -$gpuUnits,
                 'gpu_balance' => $newGpu,
                 'type'        => 'adjust',
             ]);
@@ -428,12 +438,12 @@ class ContractService
         if (trim($apiKey) === '') {
             throw new RuntimeException('กรุณากรอก API Key');
         }
-        // The key is valid for the GPU card's rental period — the contract term.
-        $c = Contract::find((int) $k['contract_id']);
+        // Usage is counted from the provision date: gpu_units * 30 days.
+        $days = (int) ($k['days'] ?? $this->unitDays());
         ApiKey::update($id, [
             'base_url'       => $baseUrl,
             'api_key'        => trim($apiKey),
-            'expires_at'     => $c['end_date'] ?? null,
+            'expires_at'     => date('Y-m-d', strtotime("+{$days} days")),
             'status'         => 'active',
             'provisioned_at' => date('Y-m-d H:i:s'),
         ]);
@@ -456,7 +466,8 @@ class ContractService
         if ($status === 'failed' && $k['status'] !== 'active') {
             $c = Contract::find((int) $k['contract_id']);
             if ($c) {
-                Contract::update((int) $k['contract_id'], ['gpu_remaining' => (int) $c['gpu_remaining'] + 1]);
+                $refund = (int) ($k['gpu_units'] ?? 1);
+                Contract::update((int) $k['contract_id'], ['gpu_remaining' => (int) $c['gpu_remaining'] + $refund]);
             }
         }
         ApiKey::update($id, ['status' => $status]);
