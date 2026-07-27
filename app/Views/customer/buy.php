@@ -9,8 +9,7 @@ $unitDays = (int) config('app.unit_days', 30);
 <div style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($packages))) ?>,1fr);gap:18px" class="buy-grid">
   <?php foreach ($packages as $i => $p):
     $featured = ($i === 1);
-    $total = (int)$p['units'] * (int)$p['sale_price'];
-    $days = (int)$p['units'] * $unitDays; ?>
+    $total = (int)$p['units'] * (int)$p['sale_price']; ?>
     <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);
          <?= $featured ? 'border:1px solid transparent;background:linear-gradient(160deg,var(--navy),var(--navy1));color:#eaf1ff'
                        : 'border:1px solid var(--border);background:var(--surface);color:var(--text)' ?>">
@@ -19,7 +18,7 @@ $unitDays = (int) config('app.unit_days', 30);
       <?php endif; ?>
       <div style="font-weight:600;font-size:16px"><?= e($p['name']) ?></div>
       <div class="mono" style="font-size:40px;font-weight:600;margin-top:14px"><?= (int)$p['units'] ?></div>
-      <div style="font-size:13px;opacity:.7;margin-top:2px">หน่วย (M) · <?= number_format($days) ?> วันใช้งาน</div>
+      <div style="font-size:13px;opacity:.7;margin-top:2px">หน่วย (M)<?= $p['note'] ? ' · ' . e($p['note']) : '' ?></div>
       <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
       <div style="font-size:16px;font-weight:600"><?= baht($total) ?></div>
       <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย</div>

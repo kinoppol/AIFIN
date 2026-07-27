@@ -133,7 +133,6 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
       <?php foreach ($packages as $i => $p):
         $featured = ($i === 1);
         $total = (int) $p['units'] * (int) $p['sale_price'];
-        $days = (int) $p['units'] * $unitDays;
       ?>
         <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);
              <?= $featured
@@ -147,7 +146,7 @@ $primaryHref = $loggedIn ? ($isAdmin ? url('admin') : url('account')) : url('reg
           <div style="font-size:13px;opacity:.7;margin-top:2px">หน่วย (M)</div>
           <div style="height:1px;background:currentColor;opacity:.12;margin:18px 0"></div>
           <div style="font-size:15px;font-weight:600"><?= baht($total) ?></div>
-          <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย · <?= number_format($days) ?> วันใช้งาน</div>
+          <div style="font-size:13px;opacity:.7;margin-top:4px"><?= baht($p['sale_price']) ?> ต่อหน่วย<?= $p['note'] ? ' · ' . e($p['note']) : '' ?></div>
           <a class="btn btn-block" style="margin-top:20px;<?= $featured ? 'background:#fff;color:#0d1c34' : 'background:var(--sunk);color:var(--text);border:1px solid var(--border)' ?>" href="<?= e($primaryHref) ?>">เริ่มทำสัญญา</a>
         </div>
       <?php endforeach; ?>
