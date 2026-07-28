@@ -172,6 +172,19 @@ document.addEventListener('click', function (e) {
   }
 });
 
+// Extension button: open the request form, or explain why it's not available.
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('.ext-btn');
+  if (!b) return;
+  var blocked = b.getAttribute('data-ext-blocked');
+  if (blocked) {
+    AIFIN.alert({ title: 'ยังขอขยายอายุไม่ได้', message: blocked });
+  } else {
+    var m = document.getElementById('ext-modal');
+    if (m) m.showModal();
+  }
+});
+
 // Open a receipt (or any hidden block) referenced by [data-receipt-open="id"].
 document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-receipt-open]');

@@ -20,11 +20,15 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
         <div style="color:#7b90b3;font-size:11.5px">สิ้นสุด</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span><?= thai_date($c['end_date']) ?></span>
-          <?php if ($canExtend): ?>
-            <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,.16);color:#eaf1ff;border:1px solid rgba(255,255,255,.22);padding:4px 10px" onclick="document.getElementById('ext-modal').showModal()"><?= icon('calendar-plus', 14) ?>ขอขยายอายุ</button>
-          <?php elseif ($quotaLeft > 0 && $daysLeft >= $extWindow): ?>
-            <span style="font-size:11px;color:#7b90b3">(ขอขยายได้เมื่อเหลือ &lt; <?= $extWindow ?> วัน · เหลือ <?= $daysLeft ?> วัน)</span>
-          <?php endif; ?>
+          <?php
+          $extBlockedMsg = $quotaLeft <= 0
+              ? "ใช้โควตาการขยายอายุครบ {$maxExt} เดือนแล้ว ไม่สามารถขอเพิ่มได้"
+              : ($daysLeft >= $extWindow
+                  ? "ขอขยายอายุได้เมื่อสัญญาเหลือน้อยกว่า {$extWindow} วันเท่านั้น (ขณะนี้เหลือ {$daysLeft} วัน)"
+                  : '');
+          ?>
+          <button type="button" class="btn btn-sm ext-btn" style="background:rgba(255,255,255,.16);color:#eaf1ff;border:1px solid rgba(255,255,255,.22);padding:4px 10px"
+                  <?= $extBlockedMsg ? 'data-ext-blocked="' . e($extBlockedMsg) . '"' : '' ?>><?= icon('calendar-plus', 14) ?>ขอขยายสัญญา</button>
         </div>
       </div>
       <div><div style="color:#7b90b3;font-size:11.5px">ขยายแล้ว</div><?= $usedMonths ?>/<?= $maxExt ?> เดือน</div>
