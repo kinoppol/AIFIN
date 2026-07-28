@@ -248,5 +248,6 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
     </div>
   </form>
 </dialog>
+<script>if(new URLSearchParams(location.search).get('pay')==='1'){var _pm=document.getElementById('pay-modal');if(_pm)_pm.showModal();}</script>
 <?php endif; ?>
 <style>@media(max-width:800px){.cc-row{grid-template-columns:1fr!important}}</style>

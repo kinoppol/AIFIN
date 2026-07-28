@@ -31,7 +31,12 @@ $totalGpu = array_sum(array_map(fn($c) => (int)($c['gpu_remaining'] ?? 0), $cont
           <td class="mono" style="font-weight:600"><?= balance_summary($c) ?></td>
           <td class="muted" style="font-size:12.5px"><?= thai_date($c['start_date']) ?> – <?= thai_date($c['end_date']) ?></td>
           <td><?= contract_status_pill($c) ?></td>
-          <td><a class="btn btn-light btn-sm" href="<?= e(url('account/contract?id=' . $c['id'])) ?>">เปิดสัญญา</a></td>
+          <td style="white-space:nowrap;text-align:right">
+            <?php if (($c['payment_status'] ?? 'paid') === 'unpaid'): ?>
+              <a class="btn btn-primary btn-sm" href="<?= e(url('account/contract?id=' . $c['id'] . '&pay=1')) ?>"><?= icon('send', 14) ?>แจ้งชำระเงิน</a>
+            <?php endif; ?>
+            <a class="btn btn-light btn-sm" href="<?= e(url('account/contract?id=' . $c['id'])) ?>">เปิดสัญญา</a>
+          </td>
         </tr>
       <?php endforeach; ?>
       <?php if (!$contracts): ?>
