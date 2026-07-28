@@ -65,7 +65,9 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
             : 'ส่งหลักฐานการชำระแล้ว รอผู้ดูแลตรวจสอบและอนุมัติ' ?>
       </div>
       <?php if ($payStatus === 'submitted' && $payment): ?>
-        <div class="muted" style="font-size:12px;margin-top:8px">แจ้งเมื่อ <?= thai_date(substr($payment['submitted_at'], 0, 10)) ?><?= $payment['method'] ? ' · วิธี ' . e($payment['method']) : '' ?><?= $payment['reference'] ? ' · อ้างอิง ' . e($payment['reference']) : '' ?></div>
+        <div class="muted" style="font-size:12px;margin-top:8px">
+          ยอดที่แจ้ง <?= baht($payment['amount']) ?><?= $payment['method'] ? ' · ' . e($payment['method']) : '' ?><?= !empty($payment['paid_at']) ? ' · ชำระเมื่อ ' . thai_date(substr($payment['paid_at'], 0, 10)) . ' ' . e(substr($payment['paid_at'], 11, 5)) . ' น.' : '' ?><?= $payment['reference'] ? ' · อ้างอิง ' . e($payment['reference']) : '' ?>
+        </div>
       <?php endif; ?>
     </div>
     <div style="text-align:right">
@@ -74,7 +76,8 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
     </div>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-    <button type="button" class="btn btn-light btn-sm" data-receipt-open="quotation"><?= icon('download', 15) ?>ใบเสนอราคา</button>
+    <button type="button" class="btn btn-light btn-sm" data-receipt-open="quotation"><?= icon('download', 15) ?>ดูใบเสนอราคา</button>
+    <a class="btn btn-light btn-sm" target="_blank" rel="noopener" href="<?= e(url('account/quotation?id=' . $c['id'])) ?>"><?= icon('download', 15) ?>พิมพ์ใบเสนอราคา (A4)</a>
     <?php if ($payStatus === 'unpaid'): ?>
       <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('pay-modal').showModal()"><?= icon('send', 15) ?>แจ้งการชำระเงิน</button>
     <?php elseif ($payment && !empty($payment['proof_path'])): ?>
@@ -232,6 +235,10 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
       <select class="input" name="method">
         <option>โอนเงินผ่านธนาคาร</option><option>พร้อมเพย์ (PromptPay)</option><option>บัตรเครดิต</option><option>อื่น ๆ</option>
       </select>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div class="field" style="flex:1"><label>ยอดเงินที่โอน (บาท)</label><input class="input" type="number" name="amount" min="0" value="<?= (int)$grandTotal ?>" required></div>
+      <div class="field" style="flex:1"><label>วันเวลาที่ชำระ</label><input class="input" type="datetime-local" name="paid_at" value="<?= date('Y-m-d\TH:i') ?>" required></div>
     </div>
     <div class="field"><label>เลขอ้างอิง / หมายเหตุ (ไม่บังคับ)</label><input class="input" name="reference" placeholder="เช่น เลขที่รายการโอน"></div>
     <div class="field"><label>หลักฐานการชำระ (รูปภาพหรือ PDF · ไม่เกิน 5MB)</label><input class="input" type="file" name="proof" accept="image/*,application/pdf" required></div>

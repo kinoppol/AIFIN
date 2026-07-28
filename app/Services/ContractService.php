@@ -317,8 +317,8 @@ class ContractService
 
     // --- Payment / approval -------------------------------------------------
 
-    /** Customer notifies payment (with an optional proof file path). */
-    public function submitPayment(int $contractId, string $method, string $reference, ?string $proofPath): int
+    /** Customer notifies payment (amount, when paid, and an optional proof file). */
+    public function submitPayment(int $contractId, string $method, string $reference, ?string $proofPath, int $amount = 0, ?string $paidAt = null): int
     {
         $c = Contract::find($contractId);
         if (!$c) {
@@ -329,9 +329,10 @@ class ContractService
         }
         $id = Payment::insert([
             'contract_id' => $contractId,
-            'amount'      => (int) $c['total_amount'],
+            'amount'      => $amount > 0 ? $amount : (int) $c['total_amount'],
             'method'      => $method !== '' ? $method : null,
             'reference'   => $reference !== '' ? $reference : null,
+            'paid_at'     => $paidAt ?: null,
             'proof_path'  => $proofPath,
             'status'      => 'submitted',
         ]);

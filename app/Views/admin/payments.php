@@ -23,6 +23,7 @@
 
         <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:12px;font-size:12.5px">
           <span class="faint">วิธีชำระ</span><span><?= e($q['method'] ?: '—') ?></span>
+          <span class="faint">วันเวลาที่ชำระ</span><span><?= $q['paid_at'] ? thai_date(substr($q['paid_at'],0,10)) . ' ' . e(substr($q['paid_at'],11,5)) . ' น.' : '—' ?></span>
           <span class="faint">อ้างอิง</span><span><?= e($q['reference'] ?: '—') ?></span>
         </div>
 

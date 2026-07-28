@@ -181,17 +181,38 @@ class AccountController extends Controller
             if (!empty($_FILES['proof']['name']) && (($_FILES['proof']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK)) {
                 $proofPath = $this->storeProof($_FILES['proof']);
             }
+            $paidRaw = trim((string) $this->input('paid_at'));
+            $paidAt = $paidRaw !== '' ? date('Y-m-d H:i:s', strtotime($paidRaw)) : null;
             (new ContractService())->submitPayment(
                 $contractId,
                 trim((string) $this->input('method')),
                 trim((string) $this->input('reference')),
-                $proofPath
+                $proofPath,
+                (int) $this->input('amount'),
+                $paidAt
             );
             $this->flash('success', 'แจ้งชำระเงินแล้ว รอผู้ดูแลตรวจสอบและอนุมัติ');
         } catch (\Throwable $e) {
             $this->flash('danger', $e->getMessage());
         }
         $this->redirect('account/contract?id=' . $contractId);
+    }
+
+    /** Full-page, printable A4 quotation for a contract (owner or admin). */
+    public function quotation(): void
+    {
+        $this->requireAuth();
+        $id = (int) $this->input('id');
+        $c = Contract::find($id);
+        if (!$c || ((int) $c['user_id'] !== Auth::id() && !Auth::isAdmin())) {
+            http_response_code(404);
+            exit('ไม่พบสัญญา');
+        }
+        // Standalone document (its own HTML) — no app layout.
+        $this->render('customer/quotation', [
+            'c'        => $c,
+            'autoPrint'=> (string) $this->input('print') === '1',
+        ], null);
     }
 
     /** Stream a payment proof file to its owner (or an admin). */

@@ -48,6 +48,7 @@ $router->post('account/extend',  [AccountController::class, 'requestExtension'])
 $router->post('account/buy-gpu', [AccountController::class, 'buyGpu']);
 $router->post('account/apikey',  [AccountController::class, 'requestApiKey']);
 $router->post('account/payment', [AccountController::class, 'submitPayment']);
+$router->get('account/quotation', [AccountController::class, 'quotation']);
 $router->get('account/proof',    [AccountController::class, 'proof']);
 
 // Admin area

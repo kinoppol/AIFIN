@@ -22,7 +22,7 @@ class Payment extends Model
     {
         return static::db()->query(
             "SELECT c.*, p.id AS payment_id, p.amount AS pay_amount, p.method, p.reference,
-                    p.proof_path, p.submitted_at
+                    p.paid_at, p.proof_path, p.submitted_at
              FROM contracts c
              JOIN payments p ON p.contract_id = c.id AND p.status = 'submitted'
              WHERE c.payment_status = 'submitted'
