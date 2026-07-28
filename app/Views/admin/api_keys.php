@@ -17,6 +17,36 @@ $statusPill = function (string $s): string {
     <?php if ($requested): ?><br><b style="color:var(--warn)">รอจัดหา <?= (int)$requested ?> รายการ</b><?php endif; ?>
   </div>
 
+  <!-- per-customer summary: asked vs provided -->
+  <div class="card" style="overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span style="font-weight:600">สรุป API Key ตามลูกค้า</span>
+      <span class="muted" style="font-size:12px">แถวสีเหลือง = ยังมีคำขอที่ยังไม่ได้จัดหา</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>ลูกค้า</th><th>ขอ API Key</th><th>จัดหาแล้ว</th><th>รอดำเนินการ</th></tr></thead>
+        <tbody>
+        <?php foreach ($summary as $s): $pending = (int)$s['asked'] - (int)$s['provided']; ?>
+          <tr style="<?= $pending > 0 ? 'background:color-mix(in srgb,var(--warn) 14%,transparent)' : '' ?>">
+            <td><?= e($s['customer']) ?><div class="mono faint" style="font-size:11.5px;margin-top:2px"><?= e($s['email']) ?></div></td>
+            <td class="mono" style="font-weight:600"><?= (int)$s['asked'] ?></td>
+            <td class="mono" style="font-weight:600;color:var(--ok)"><?= (int)$s['provided'] ?></td>
+            <td>
+              <?php if ($pending > 0): ?>
+                <span class="pill pill-wait"><?= $pending ?> รอจัดหา</span>
+              <?php else: ?>
+                <span class="pill pill-ok">ครบแล้ว</span>
+              <?php endif; ?>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$summary): ?><tr><td colspan="4" class="muted" style="text-align:center;padding:24px">ยังไม่มีคำขอ API Key</td></tr><?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px" class="ak-grid">
     <?php foreach ($queue as $k):
       $pending = in_array($k['status'], ['requested', 'provisioning'], true); ?>

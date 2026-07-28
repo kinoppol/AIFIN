@@ -60,4 +60,25 @@ class ApiKey extends Model
     {
         return static::count('status = ?', [$status]);
     }
+
+    /**
+     * Per-customer API-key summary: how many keys were asked for (not counting
+     * cancelled/failed) vs how many are provisioned (active). A mismatch means
+     * there is still work to do.
+     */
+    public static function summaryByCustomer(): array
+    {
+        return static::db()->query(
+            "SELECT u.id, u.name AS customer, u.email,
+                    SUM(CASE WHEN k.status IN ('requested','provisioning','active') THEN 1 ELSE 0 END) AS asked,
+                    SUM(CASE WHEN k.status = 'active' THEN 1 ELSE 0 END) AS provided
+             FROM api_keys k
+             JOIN contracts c ON c.id = k.contract_id
+             JOIN users u ON u.id = c.user_id
+             GROUP BY u.id, u.name, u.email
+             HAVING asked > 0
+             ORDER BY (SUM(CASE WHEN k.status IN ('requested','provisioning','active') THEN 1 ELSE 0 END)
+                       - SUM(CASE WHEN k.status = 'active' THEN 1 ELSE 0 END)) DESC, u.name ASC"
+        )->fetchAll();
+    }
 }

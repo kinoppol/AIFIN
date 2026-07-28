@@ -16,6 +16,7 @@ class ApiKeyController extends Controller
             'active'   => 'gpu',
             'queue'    => ApiKey::queue(),
             'requested'=> ApiKey::countByStatus('requested'),
+            'summary'  => ApiKey::summaryByCustomer(),
             'badges'   => DashboardController::badges(),
         ]);
     }
