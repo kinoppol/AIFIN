@@ -49,6 +49,7 @@ $router->post('account/buy-gpu', [AccountController::class, 'buyGpu']);
 $router->post('account/apikey',  [AccountController::class, 'requestApiKey']);
 $router->post('account/payment', [AccountController::class, 'submitPayment']);
 $router->get('account/quotation', [AccountController::class, 'quotation']);
+$router->get('account/receipt',  [AccountController::class, 'receipt']);
 $router->get('account/proof',    [AccountController::class, 'proof']);
 
 // Admin area
@@ -68,6 +69,7 @@ $router->post('admin/packages',          [PackageController::class, 'store']);
 $router->post('admin/packages/update',   [PackageController::class, 'update']);
 $router->get('admin/gpu',                [ApiKeyController::class, 'index']);
 $router->post('admin/gpu/provision',     [ApiKeyController::class, 'provision']);
+$router->post('admin/gpu/update',        [ApiKeyController::class, 'update']);
 $router->post('admin/gpu/status',        [ApiKeyController::class, 'updateStatus']);
 $router->get('admin/payments',           [PaymentController::class, 'index']);
 $router->post('admin/payments/approve',  [PaymentController::class, 'approve']);

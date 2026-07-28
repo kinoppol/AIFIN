@@ -7,12 +7,21 @@ class ApiKey extends Model
 {
     protected static string $table = 'api_keys';
 
+    /** A hard-to-guess key reference, e.g. AK-7K3QF9 (unambiguous alphabet). */
     public static function nextNo(): string
     {
-        $stmt = static::db()->query("SELECT key_no FROM api_keys ORDER BY id DESC LIMIT 1");
-        $last = $stmt->fetchColumn();
-        $seq = $last ? ((int) substr($last, 3)) + 1 : 1001;
-        return sprintf('AK-%04d', $seq);
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $len = strlen($alphabet);
+        $check = static::db()->prepare("SELECT 1 FROM api_keys WHERE key_no = ?");
+        do {
+            $rand = '';
+            for ($i = 0; $i < 6; $i++) {
+                $rand .= $alphabet[random_int(0, $len - 1)];
+            }
+            $no = 'AK-' . $rand;
+            $check->execute([$no]);
+        } while ($check->fetchColumn());
+        return $no;
     }
 
     public static function forContract(int $contractId): array

@@ -518,6 +518,22 @@ class ContractService
         ]);
     }
 
+    /** Admin edits an existing key's BASE URL / API key (status unchanged). */
+    public function updateApiKey(int $id, string $baseUrl, string $apiKey): void
+    {
+        $k = ApiKey::find($id);
+        if (!$k) {
+            throw new RuntimeException('ไม่พบ API Key');
+        }
+        if (!filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            throw new RuntimeException('BASE URL ไม่ถูกต้อง');
+        }
+        if (trim($apiKey) === '') {
+            throw new RuntimeException('กรุณากรอก API Key');
+        }
+        ApiKey::update($id, ['base_url' => $baseUrl, 'api_key' => trim($apiKey)]);
+    }
+
     /**
      * Change an API key's status. Marking a not-yet-active request 'failed'
      * refunds the reserved GPU card back to the contract.

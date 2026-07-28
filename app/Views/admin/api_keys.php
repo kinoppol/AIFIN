@@ -45,14 +45,16 @@ $statusPill = function (string $s): string {
             </div>
           </form>
         <?php else: ?>
-          <div style="margin-top:14px;border:1px solid var(--border);border-radius:11px;background:var(--sunk);padding:12px 14px;display:grid;gap:8px">
-            <div><div class="faint" style="font-size:11.5px">BASE URL</div><div class="mono" style="font-size:12.5px;word-break:break-all"><?= e($k['base_url']) ?></div></div>
-            <div><div class="faint" style="font-size:11.5px">API Key</div><div class="mono" style="font-size:12.5px;word-break:break-all"><?= e($k['api_key']) ?></div></div>
-            <div style="display:flex;justify-content:space-between;gap:10px">
-              <span class="faint" style="font-size:11.5px">จัดหาเมื่อ <?= $k['provisioned_at'] ? e($k['provisioned_at']) : '—' ?></span>
-              <span class="faint" style="font-size:11.5px">หมดอายุ <?= $k['expires_at'] ? thai_date($k['expires_at']) : '—' ?></span>
+          <form method="post" action="<?= e(url('admin/gpu/update')) ?>" style="margin-top:14px;border:1px solid var(--border);border-radius:11px;background:var(--sunk);padding:12px 14px"
+                data-confirm="บันทึกการแก้ไข BASE URL / API Key ของ <?= e($k['key_no']) ?>?" data-confirm-title="ยืนยันการแก้ไข" data-confirm-ok="บันทึก">
+            <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int)$k['id'] ?>">
+            <div class="field" style="margin-bottom:10px"><label style="font-size:11.5px">BASE URL</label><input class="input mono" style="font-size:12.5px" type="url" name="base_url" value="<?= e($k['base_url']) ?>" required></div>
+            <div class="field" style="margin-bottom:10px"><label style="font-size:11.5px">API Key</label><input class="input mono" style="font-size:12.5px" type="text" name="api_key" value="<?= e($k['api_key']) ?>" required></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="faint" style="font-size:11px">จัดหา <?= $k['provisioned_at'] ? thai_date(substr($k['provisioned_at'],0,10)) : '—' ?> · หมดอายุ <?= $k['expires_at'] ? thai_date($k['expires_at']) : '—' ?></span>
+              <button class="btn btn-light btn-sm" type="submit"><?= icon('edit', 14) ?>บันทึกการแก้ไข</button>
             </div>
-          </div>
+          </form>
         <?php endif; ?>
       </div>
     <?php endforeach; ?>

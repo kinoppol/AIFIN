@@ -215,6 +215,28 @@ class AccountController extends Controller
         ], null);
     }
 
+    /** Full-page, printable brief receipt for a purchase ledger entry. */
+    public function receipt(): void
+    {
+        $this->requireAuth();
+        $l = UnitLedger::find((int) $this->input('id'));
+        if (!$l || $l['type'] !== 'purchase') {
+            http_response_code(404);
+            exit('ไม่พบรายการ');
+        }
+        $c = Contract::find((int) $l['contract_id']);
+        if (!$c || ((int) $c['user_id'] !== Auth::id() && !Auth::isAdmin())) {
+            http_response_code(404);
+            exit('ไม่พบรายการ');
+        }
+        $this->render('customer/receipt', [
+            'c'         => $c,
+            'l'         => $l,
+            'total'     => (int) $l['amount'] * (int) $c['price_per_m'],
+            'autoPrint' => (string) $this->input('print') === '1',
+        ], null);
+    }
+
     /** Stream a payment proof file to its owner (or an admin). */
     public function proof(): void
     {

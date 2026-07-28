@@ -10,6 +10,11 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
 $payStatus  = $c['payment_status'] ?? 'paid';
 $usable     = ($payStatus === 'paid');
 $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 0.07);
+$hasM       = (int) $c['units_total'] > 0;
+$hasG       = (int) $c['gpu_total'] > 0;
+$maxRedeem  = contract_max_redeem($c);
+$expired    = contract_is_expired($c);
+$redeemCap  = (int) config('app.max_redeem_units', 12);
 ?>
 <a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับสัญญาของฉัน</a>
 
@@ -41,10 +46,12 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
     <?php endif; ?>
   </div>
   <div style="text-align:right">
-    <?php $hasM = (int)$c['units_total'] > 0; $hasG = (int)$c['gpu_total'] > 0; ?>
     <?php if ($hasM): ?>
       <div class="mono" style="font-size:40px;font-weight:600"><?= units($c['units_remaining']) ?></div>
       <div style="font-size:12.5px;color:#8ba1c4">คงเหลือจาก <?= units($c['units_total']) ?></div>
+      <?php if ($usable && $maxRedeem >= 1): ?>
+        <button type="button" class="btn btn-sm" style="margin-top:12px;background:#fff;color:#0d1c34;font-weight:600" onclick="document.getElementById('redeem-modal').showModal()"><?= icon('redeem', 14) ?>แลกสิทธิ์</button>
+      <?php endif; ?>
     <?php endif; ?>
     <?php if ($hasG): ?>
       <div class="mono" style="font-size:<?= $hasM ? '22' : '40' ?>px;font-weight:600;color:#7fe0cf;margin-top:<?= $hasM ? '8' : '0' ?>px"><?= (int)$c['gpu_remaining'] ?> G</div>
@@ -97,32 +104,6 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
   </div>
 
   <div class="stack" style="align-content:start">
-    <!-- redeem -->
-    <div class="card card-pad">
-      <div style="font-weight:600;font-size:15px">แลกหน่วยเป็นสิทธิ์</div>
-      <?php if (!$usable): ?>
-        <div class="faint" style="font-size:12.5px;margin-top:10px">เปิดใช้งานได้หลังชำระเงินและผู้ดูแลอนุมัติสัญญา</div>
-      <?php else: ?>
-      <form method="post" action="<?= e(url('account/redeem')) ?>" style="margin-top:14px"
-            data-confirm="ยืนยันการแลกหน่วยเป็นสิทธิ์ตามจำนวนและอีเมลที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์นี้และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
-        <?= csrf_field() ?>
-        <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
-        <div class="field"><label>อีเมลที่จะผูกสิทธิ์</label><input class="input" type="email" name="email" required></div>
-        <?php $maxRedeem = contract_max_redeem($c); $expired = contract_is_expired($c); $cap = (int) config('app.max_redeem_units', 12); ?>
-        <div class="field"><label>จำนวนหน่วย (แลกได้สูงสุด <?= $maxRedeem ?> M ต่อครั้ง)</label>
-          <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
-        <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
-        <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
-        <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>><?= icon('redeem', 15) ?>ส่งคำขอแลก</button>
-        <?php if ($expired): ?>
-          <div class="faint" style="font-size:11.5px;margin-top:8px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
-        <?php else: ?>
-          <div class="faint" style="font-size:11.5px;margin-top:8px">* แลกได้ครั้งละไม่เกิน <?= $cap ?> หน่วย · สิทธิ์การใช้งานคงอยู่แม้สัญญาหมดอายุ</div>
-        <?php endif; ?>
-      </form>
-      <?php endif; ?>
-    </div>
-
     <!-- redemptions & provisioned seats -->
     <div class="card card-pad">
       <div style="font-weight:600;font-size:15px">คำขอแลกสิทธิ์ & สถานะ</div>
@@ -221,6 +202,35 @@ $grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 
   </form>
 </dialog>
 <?php endif; ?>
+<?php if ($usable && $hasM): ?>
+<dialog id="redeem-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/redeem')) ?>" style="padding:22px"
+        data-confirm="ยืนยันการแลกหน่วยเป็นสิทธิ์ตามจำนวนและอีเมลที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์นี้และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
+    <?= csrf_field() ?>
+    <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+    <div class="modal-head" style="margin-bottom:4px">
+      <h3 style="margin:0;font-size:17px">แลกหน่วยเป็นสิทธิ์</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px">คงเหลือ <?= (int)$c['units_remaining'] ?> M · แลกได้ครั้งละไม่เกิน <?= $redeemCap ?> หน่วย</p>
+    <div class="field"><label>อีเมลที่จะผูกสิทธิ์</label><input class="input" type="email" name="email" required></div>
+    <div class="field"><label>จำนวนหน่วย (แลกได้สูงสุด <?= $maxRedeem ?> M ต่อครั้ง)</label>
+      <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
+    <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
+    <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
+    <?php if ($expired): ?>
+      <div class="faint" style="font-size:11.5px;margin-top:6px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
+    <?php else: ?>
+      <div class="faint" style="font-size:11.5px;margin-top:6px">* แลกได้ครั้งละไม่เกิน <?= $redeemCap ?> หน่วย · สิทธิ์การใช้งานคงอยู่แม้สัญญาหมดอายุ</div>
+    <?php endif; ?>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button class="btn btn-primary" type="submit" <?= $maxRedeem<1?'disabled':'' ?>><?= icon('redeem', 15) ?>ส่งคำขอแลก</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
+
 <?php if ($payStatus === 'unpaid'): ?>
 <dialog id="pay-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:440px;width:92%;padding:0;color:var(--text)">
   <form method="post" action="<?= e(url('account/payment')) ?>" enctype="multipart/form-data" style="padding:22px">

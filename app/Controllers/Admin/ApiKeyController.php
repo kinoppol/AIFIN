@@ -38,6 +38,23 @@ class ApiKeyController extends Controller
         $this->redirect('admin/gpu');
     }
 
+    public function update(): void
+    {
+        $this->requireAdmin();
+        Csrf::verify();
+        try {
+            (new ContractService())->updateApiKey(
+                (int) $this->input('id'),
+                trim((string) $this->input('base_url')),
+                (string) $this->input('api_key')
+            );
+            $this->flash('success', 'แก้ไขข้อมูล API Key แล้ว');
+        } catch (\Throwable $e) {
+            $this->flash('danger', $e->getMessage());
+        }
+        $this->redirect('admin/gpu');
+    }
+
     public function updateStatus(): void
     {
         $this->requireAdmin();

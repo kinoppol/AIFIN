@@ -40,5 +40,6 @@ $rno = 'RCPT-' . $c['contract_no'] . '-' . (int) $l['id'];
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;font-weight:600"><span>รวมทั้งสิ้น</span><span class="mono" style="color:var(--accent)"><?= e(baht($grand)) ?></span></div>
     </div>
   </div>
+  <a class="btn btn-light btn-sm" target="_blank" rel="noopener" href="<?= e(url('account/receipt?id=' . (int)$l['id'])) ?>" style="margin-top:14px"><?= icon('download', 15) ?>พิมพ์ใบเสร็จ (A4)</a>
   <div class="faint" style="font-size:11.5px;margin-top:10px">* เอกสารสรุปอย่างย่อสำหรับอ้างอิงภายในระบบ ไม่ใช่ใบกำกับภาษี</div>
 </div>
