@@ -5,6 +5,7 @@ use App\Core\Database;
 use App\Core\Config;
 use App\Models\ApiKey;
 use App\Models\Contract;
+use App\Models\Payment;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
 use App\Models\Redemption;
@@ -45,7 +46,7 @@ class ContractService
      *
      * @return int contract id
      */
-    public function purchase(int $userId, string $customerName, int $units, int $pricePerM, ?int $packageId = null, ?int $contractId = null, int $bonusGpu = 0): int
+    public function purchase(int $userId, string $customerName, int $units, int $pricePerM, ?int $packageId = null, ?int $contractId = null, int $bonusGpu = 0, string $paymentStatus = 'unpaid'): int
     {
         if ($units <= 0) {
             throw new RuntimeException('จำนวนหน่วยต้องมากกว่า 0');
@@ -70,6 +71,8 @@ class ContractService
                     'base_end_date'  => $baseEnd,
                     'end_date'       => $baseEnd,
                     'status'         => 'active',
+                    'payment_status' => $paymentStatus,
+                    'total_amount'   => $units * $pricePerM,
                 ]);
                 $balance = $units;
             } else {
@@ -140,6 +143,9 @@ class ContractService
             $c = Contract::find($contractId);
             if (!$c) {
                 throw new RuntimeException('ไม่พบสัญญา');
+            }
+            if (($c['payment_status'] ?? 'paid') !== 'paid') {
+                throw new RuntimeException('สัญญานี้ยังไม่ได้รับการอนุมัติการชำระเงิน');
             }
             // Once the contract has expired, remaining units can no longer be
             // redeemed (but access already redeemed keeps running to completion).
@@ -309,13 +315,70 @@ class ContractService
         Contract::refreshStatus((int) $x['contract_id']);
     }
 
+    // --- Payment / approval -------------------------------------------------
+
+    /** Customer notifies payment (with an optional proof file path). */
+    public function submitPayment(int $contractId, string $method, string $reference, ?string $proofPath): int
+    {
+        $c = Contract::find($contractId);
+        if (!$c) {
+            throw new RuntimeException('ไม่พบสัญญา');
+        }
+        if (($c['payment_status'] ?? 'paid') === 'paid') {
+            throw new RuntimeException('สัญญานี้ได้รับการอนุมัติแล้ว');
+        }
+        $id = Payment::insert([
+            'contract_id' => $contractId,
+            'amount'      => (int) $c['total_amount'],
+            'method'      => $method !== '' ? $method : null,
+            'reference'   => $reference !== '' ? $reference : null,
+            'proof_path'  => $proofPath,
+            'status'      => 'submitted',
+        ]);
+        Contract::update($contractId, ['payment_status' => 'submitted']);
+        return $id;
+    }
+
+    /** Admin approves the payment — the contract becomes usable. */
+    public function approvePayment(int $contractId): void
+    {
+        $c = Contract::find($contractId);
+        if (!$c) {
+            throw new RuntimeException('ไม่พบสัญญา');
+        }
+        $p = Payment::latestForContract($contractId);
+        if ($p) {
+            Payment::update((int) $p['id'], ['status' => 'approved', 'verified_at' => date('Y-m-d H:i:s')]);
+        }
+        Contract::update($contractId, ['payment_status' => 'paid']);
+        Contract::refreshStatus($contractId);
+    }
+
+    /** Admin rejects the payment — customer must re-submit. */
+    public function rejectPayment(int $contractId, string $note = ''): void
+    {
+        $c = Contract::find($contractId);
+        if (!$c) {
+            throw new RuntimeException('ไม่พบสัญญา');
+        }
+        $p = Payment::latestForContract($contractId);
+        if ($p) {
+            Payment::update((int) $p['id'], [
+                'status'      => 'rejected',
+                'verified_at' => date('Y-m-d H:i:s'),
+                'note'        => $note !== '' ? $note : null,
+            ]);
+        }
+        Contract::update($contractId, ['payment_status' => 'unpaid']);
+    }
+
     // --- GPU rental ---------------------------------------------------------
 
     /**
      * Buy GPU cards. Creates a GPU-only contract if $contractId is null (0 M
      * units), otherwise adds cards to an existing contract's wallet.
      */
-    public function purchaseGpu(int $userId, string $customerName, int $cards, int $pricePerCard, ?int $packageId = null, ?int $contractId = null): int
+    public function purchaseGpu(int $userId, string $customerName, int $cards, int $pricePerCard, ?int $packageId = null, ?int $contractId = null, string $paymentStatus = 'unpaid'): int
     {
         if ($cards <= 0) {
             throw new RuntimeException('จำนวนการ์ดต้องมากกว่า 0');
@@ -342,6 +405,8 @@ class ContractService
                     'base_end_date'  => $baseEnd,
                     'end_date'       => $baseEnd,
                     'status'         => 'active',
+                    'payment_status' => $paymentStatus,
+                    'total_amount'   => $cards * $pricePerCard,
                 ]);
             } else {
                 $c = Contract::find($contractId);
@@ -391,6 +456,9 @@ class ContractService
             $c = Contract::find($contractId);
             if (!$c) {
                 throw new RuntimeException('ไม่พบสัญญา');
+            }
+            if (($c['payment_status'] ?? 'paid') !== 'paid') {
+                throw new RuntimeException('สัญญานี้ยังไม่ได้รับการอนุมัติการชำระเงิน');
             }
             if ((int) $c['gpu_remaining'] < $gpuUnits) {
                 throw new RuntimeException('การ์ด GPU คงเหลือไม่พอสำหรับสร้าง API Key');

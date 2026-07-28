@@ -31,6 +31,24 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
     </div>
   </div>
 
+  <?php $ps = $c['payment_status'] ?? 'paid'; if ($ps !== 'paid'): ?>
+    <div class="card card-pad" style="border:1px solid <?= $ps === 'unpaid' ? 'var(--warn)' : 'var(--accent)' ?>">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600;font-size:15px"><?= $ps === 'unpaid' ? 'ลูกค้ายังไม่แจ้งชำระเงิน' : 'รอตรวจสอบการชำระเงิน' ?></div>
+          <div class="muted" style="font-size:12.5px;margin-top:3px">ยอดสัญญา <?= baht($c['total_amount']) ?> (ก่อน VAT)<?php if ($payment): ?> · แจ้งเมื่อ <?= thai_date(substr($payment['submitted_at'], 0, 10)) ?><?= $payment['method'] ? ' · ' . e($payment['method']) : '' ?><?php endif; ?></div>
+        </div>
+        <?php if ($ps === 'submitted' && $payment): ?>
+          <div style="display:flex;gap:9px">
+            <?php if ($payment['proof_path']): ?><a class="btn btn-light btn-sm" target="_blank" rel="noopener" href="<?= e(url('account/proof?id=' . (int)$payment['id'])) ?>">ดูหลักฐาน</a><?php endif; ?>
+            <form method="post" action="<?= e(url('admin/payments/approve')) ?>" data-confirm="อนุมัติการชำระเงินของ <?= e($c['contract_no']) ?>?" data-confirm-title="ยืนยัน" data-confirm-ok="อนุมัติ"><?= csrf_field() ?><input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>"><button class="btn btn-primary btn-sm" type="submit"><?= icon('check', 14) ?>อนุมัติ</button></form>
+            <form method="post" action="<?= e(url('admin/payments/reject')) ?>" data-confirm="ปฏิเสธการชำระเงินของ <?= e($c['contract_no']) ?>?" data-confirm-title="ยืนยัน" data-confirm-ok="ปฏิเสธ" data-confirm-danger><?= csrf_field() ?><input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>"><button class="btn btn-danger btn-sm" type="submit"><?= icon('x', 14) ?>ปฏิเสธ</button></form>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px" class="detail-row">
     <div class="card" style="overflow:hidden">
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:15px">บัญชีแยกประเภทหน่วย (Unit ledger)</div>

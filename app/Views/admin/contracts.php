@@ -37,7 +37,7 @@
               <?= thai_date($c['start_date']) ?> – <?= thai_date($c['end_date']) ?>
               <div class="faint" style="font-size:11.5px;margin-top:3px">ขยายแล้ว <?= (int)$c['extension_months_used'] ?> เดือน</div>
             </td>
-            <td><?= pill('contract', $c['status']) ?></td>
+            <td><?= contract_status_pill($c) ?></td>
             <td><a class="btn btn-light btn-sm" href="<?= e(url('admin/contracts/show?id=' . $c['id'])) ?>">รายละเอียด</a></td>
           </tr>
         <?php endforeach; ?>

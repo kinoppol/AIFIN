@@ -8,7 +8,7 @@ $unitDays = (int) config('app.unit_days', 30);
 
 <div style="display:grid;grid-template-columns:repeat(<?= max(1, min(4, count($packages))) ?>,1fr);gap:18px" class="buy-grid">
   <?php foreach ($packages as $i => $p):
-    $featured = ($i === 1);
+    $featured = ($p['status'] === 'promo');
     $total = (int)$p['units'] * (int)$p['sale_price']; ?>
     <div style="position:relative;border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;
          <?= $featured ? 'border:1px solid transparent;background:linear-gradient(160deg,var(--navy),var(--navy1));color:#eaf1ff'

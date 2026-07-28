@@ -94,7 +94,7 @@ function seed_demo(int $unitDays): void
     $svc = new App\Services\ContractService();
     $uid = User::create('demo@sinnovate.co', 'demo1234', 'บริษัท ซินโนเวท จำกัด (เดโม)', 'customer');
     $scale = Package::findByCode('scale');
-    $cid = $svc->purchase($uid, 'บริษัท ซินโนเวท จำกัด (เดโม)', 240, (int) ($scale['sale_price'] ?? 550), (int) ($scale['id'] ?? null));
+    $cid = $svc->purchase($uid, 'บริษัท ซินโนเวท จำกัด (เดโม)', 240, (int) ($scale['sale_price'] ?? 550), (int) ($scale['id'] ?? null), null, 0, 'paid');
     // A successful redemption (bound seat) and a pending one.
     $r1 = $svc->redeem($cid, 'ops@sinnovate.co', 12);
     $svc->setRedemptionStatus($r1, 'success');

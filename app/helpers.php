@@ -194,6 +194,19 @@ function pill(string $domain, string $status): string
     return '<span class="pill ' . $cls . '">' . e($label) . '</span>';
 }
 
+/** Pill for a contract, surfacing the payment stage when it isn't paid yet. */
+function contract_status_pill(array $c): string
+{
+    $ps = $c['payment_status'] ?? 'paid';
+    if ($ps === 'unpaid') {
+        return '<span class="pill pill-wait">รอการชำระเงิน</span>';
+    }
+    if ($ps === 'submitted') {
+        return '<span class="pill pill-info">รอตรวจสอบการชำระเงิน</span>';
+    }
+    return pill('contract', $c['status']);
+}
+
 /** Thai short date from a Y-m-d string. */
 function thai_date(?string $ymd): string
 {

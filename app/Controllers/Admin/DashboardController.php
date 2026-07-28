@@ -80,6 +80,7 @@ class DashboardController extends Controller
             'ext'    => ExtensionRequest::countPending(),
             'redeem' => Redemption::countByStatus('pending') + Redemption::countByStatus('awaiting_email'),
             'gpu'    => \App\Models\ApiKey::countByStatus('requested'),
+            'payment'=> \App\Models\Payment::countPending(),
         ];
     }
 }

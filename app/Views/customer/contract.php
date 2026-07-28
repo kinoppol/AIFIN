@@ -7,6 +7,9 @@ $quotaLeft  = $maxExt - $usedMonths;
 $openExts   = array_filter($exts, fn($x) => in_array($x['status'], ['pending', 'reviewing'], true));
 // Extension can be requested only inside the renewal window and with quota left.
 $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
+$payStatus  = $c['payment_status'] ?? 'paid';
+$usable     = ($payStatus === 'paid');
+$grandTotal = (int) $c['total_amount'] + (int) round((int) $c['total_amount'] * 0.07);
 ?>
 <a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับสัญญาของฉัน</a>
 
@@ -51,6 +54,37 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
   </div>
 </div>
 
+<?php if (!$usable): ?>
+<div class="card card-pad" style="margin-top:16px;border:1px solid <?= $payStatus === 'unpaid' ? 'var(--warn)' : 'var(--accent)' ?>">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div>
+      <div style="font-weight:600;font-size:15px"><?= $payStatus === 'unpaid' ? 'รอการชำระเงิน' : 'รอตรวจสอบการชำระเงิน' ?></div>
+      <div class="muted" style="font-size:13px;margin-top:3px">
+        <?= $payStatus === 'unpaid'
+            ? 'ชำระเงินและแจ้งหลักฐานเพื่อเปิดใช้งานสัญญา (แลกหน่วย/สร้าง API Key ได้หลังผู้ดูแลอนุมัติ)'
+            : 'ส่งหลักฐานการชำระแล้ว รอผู้ดูแลตรวจสอบและอนุมัติ' ?>
+      </div>
+      <?php if ($payStatus === 'submitted' && $payment): ?>
+        <div class="muted" style="font-size:12px;margin-top:8px">แจ้งเมื่อ <?= thai_date(substr($payment['submitted_at'], 0, 10)) ?><?= $payment['method'] ? ' · วิธี ' . e($payment['method']) : '' ?><?= $payment['reference'] ? ' · อ้างอิง ' . e($payment['reference']) : '' ?></div>
+      <?php endif; ?>
+    </div>
+    <div style="text-align:right">
+      <div class="muted" style="font-size:12px">ยอดชำระ (รวม VAT)</div>
+      <div class="mono" style="font-size:22px;font-weight:600;color:var(--accent)"><?= baht($grandTotal) ?></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+    <button type="button" class="btn btn-light btn-sm" data-receipt-open="quotation"><?= icon('download', 15) ?>ใบเสนอราคา</button>
+    <?php if ($payStatus === 'unpaid'): ?>
+      <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('pay-modal').showModal()"><?= icon('send', 15) ?>แจ้งการชำระเงิน</button>
+    <?php elseif ($payment && !empty($payment['proof_path'])): ?>
+      <a class="btn btn-light btn-sm" target="_blank" rel="noopener" href="<?= e(url('account/proof?id=' . $payment['id'])) ?>">ดูหลักฐานที่ส่ง</a>
+    <?php endif; ?>
+  </div>
+  <div id="quotation" hidden><?= (new App\Core\View())->partial('partials/quotation', ['c' => $c]) ?></div>
+</div>
+<?php endif; ?>
+
 <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px" class="cc-row">
   <div class="card" style="overflow:hidden">
     <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600">ประวัติหน่วย</div>
@@ -63,6 +97,9 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
     <!-- redeem -->
     <div class="card card-pad">
       <div style="font-weight:600;font-size:15px">แลกหน่วยเป็นสิทธิ์</div>
+      <?php if (!$usable): ?>
+        <div class="faint" style="font-size:12.5px;margin-top:10px">เปิดใช้งานได้หลังชำระเงินและผู้ดูแลอนุมัติสัญญา</div>
+      <?php else: ?>
       <form method="post" action="<?= e(url('account/redeem')) ?>" style="margin-top:14px"
             data-confirm="ยืนยันการแลกหน่วยเป็นสิทธิ์ตามจำนวนและอีเมลที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์นี้และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
         <?= csrf_field() ?>
@@ -80,6 +117,7 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
           <div class="faint" style="font-size:11.5px;margin-top:8px">* แลกได้ครั้งละไม่เกิน <?= $cap ?> หน่วย · สิทธิ์การใช้งานคงอยู่แม้สัญญาหมดอายุ</div>
         <?php endif; ?>
       </form>
+      <?php endif; ?>
     </div>
 
     <!-- redemptions & provisioned seats -->
@@ -114,7 +152,9 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
         <span class="mono" style="font-size:13px">เหลือ <?= $gpuRemaining ?>/<?= $gpuTotal ?> การ์ด</span>
       </div>
       <div class="muted" style="font-size:12px;margin-top:3px">1 การ์ด GPU (G) = 30 วันใช้งาน · เลือกจำนวนการ์ดต่อ 1 API Key ได้</div>
-      <?php if ($gpuRemaining >= 1): ?>
+      <?php if (!$usable): ?>
+        <div class="faint" style="font-size:12.5px;margin-top:10px">เปิดใช้งานได้หลังชำระเงินและผู้ดูแลอนุมัติสัญญา</div>
+      <?php elseif ($gpuRemaining >= 1): ?>
         <form method="post" action="<?= e(url('account/apikey')) ?>" style="margin-top:12px"
               data-confirm="ยืนยันขอสร้าง API Key ตามจำนวนการ์ด GPU ที่ระบุ?" data-confirm-title="ขอสร้าง API Key" data-confirm-ok="ขอสร้าง">
           <?= csrf_field() ?>
@@ -174,6 +214,30 @@ $canExtend  = $daysLeft < $extWindow && $quotaLeft > 0;
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
       <button type="submit" class="btn btn-primary">ส่งคำขอ</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
+<?php if ($payStatus === 'unpaid'): ?>
+<dialog id="pay-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:440px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/payment')) ?>" enctype="multipart/form-data" style="padding:22px">
+    <?= csrf_field() ?>
+    <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+    <div class="modal-head" style="margin-bottom:6px">
+      <h3 style="margin:0;font-size:17px">แจ้งการชำระเงิน</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px">ยอดชำระ <?= baht($grandTotal) ?> (รวม VAT) · แนบสลิป/หลักฐานเพื่อให้ผู้ดูแลตรวจสอบ</p>
+    <div class="field"><label>วิธีชำระ</label>
+      <select class="input" name="method">
+        <option>โอนเงินผ่านธนาคาร</option><option>พร้อมเพย์ (PromptPay)</option><option>บัตรเครดิต</option><option>อื่น ๆ</option>
+      </select>
+    </div>
+    <div class="field"><label>เลขอ้างอิง / หมายเหตุ (ไม่บังคับ)</label><input class="input" name="reference" placeholder="เช่น เลขที่รายการโอน"></div>
+    <div class="field"><label>หลักฐานการชำระ (รูปภาพหรือ PDF · ไม่เกิน 5MB)</label><input class="input" type="file" name="proof" accept="image/*,application/pdf" required></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button type="submit" class="btn btn-primary"><?= icon('send', 15) ?>ส่งแจ้งชำระเงิน</button>
     </div>
   </form>
 </dialog>

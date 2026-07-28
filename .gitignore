@@ -4,6 +4,8 @@
 # Runtime
 /storage/*.log
 /storage/cache/*
+/storage/uploads/*
+!/storage/uploads/.gitkeep
 !/storage/.gitkeep
 
 # OS / editor

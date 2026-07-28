@@ -30,7 +30,7 @@ $totalGpu = array_sum(array_map(fn($c) => (int)($c['gpu_remaining'] ?? 0), $cont
           <td class="mono" style="color:var(--accent);font-weight:600;font-size:12px"><?= e($c['contract_no']) ?></td>
           <td class="mono" style="font-weight:600"><?= balance_summary($c) ?></td>
           <td class="muted" style="font-size:12.5px"><?= thai_date($c['start_date']) ?> – <?= thai_date($c['end_date']) ?></td>
-          <td><?= pill('contract', $c['status']) ?></td>
+          <td><?= contract_status_pill($c) ?></td>
           <td><a class="btn btn-light btn-sm" href="<?= e(url('account/contract?id=' . $c['id'])) ?>">เปิดสัญญา</a></td>
         </tr>
       <?php endforeach; ?>

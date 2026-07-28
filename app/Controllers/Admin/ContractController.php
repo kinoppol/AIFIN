@@ -5,6 +5,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Models\ApiKey;
 use App\Models\Contract;
+use App\Models\Payment;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
 use App\Models\Redemption;
@@ -60,6 +61,7 @@ class ContractController extends Controller
             'ledger'   => UnitLedger::forContract($id),
             'seats'    => Redemption::seatsForContract($id),
             'apikeys'  => ApiKey::forContract($id),
+            'payment'  => Payment::latestForContract($id),
             'exts'     => ExtensionRequest::forContract($id),
             'maxExt'   => (int) config('app.max_extension_months', 6),
             'badges'   => DashboardController::badges(),
@@ -83,7 +85,8 @@ class ContractController extends Controller
         try {
             $svc = new ContractService();
             $bonus = $packageId ? (int) (Package::find($packageId)['bonus_gpu'] ?? 0) : 0;
-            $id = $svc->purchase($customerId, $customer['name'], $units, $price, $packageId, null, $bonus);
+            // Admin-created contracts are treated as already paid.
+            $id = $svc->purchase($customerId, $customer['name'], $units, $price, $packageId, null, $bonus, 'paid');
             $this->flash('success', 'สร้างสัญญาและบันทึกการซื้อหน่วยเรียบร้อย');
             $this->redirect('admin/contracts/show?id=' . $id);
         } catch (\Throwable $e) {

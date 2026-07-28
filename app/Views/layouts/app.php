@@ -25,6 +25,7 @@ $nav = function (string $key) use ($active) {
       <a class="<?= $nav('dash') ?>" href="<?= e(url('admin')) ?>">แดชบอร์ด</a>
       <div class="group">สัญญา</div>
       <a class="<?= $nav('contracts') ?>" href="<?= e(url('admin/contracts')) ?>">รายการสัญญา</a>
+      <a class="<?= $nav('payments') ?>" href="<?= e(url('admin/payments')) ?>">ตรวจสอบการชำระเงิน<?php if (!empty($badges['payment'])): ?><span class="count-badge"><?= (int)$badges['payment'] ?></span><?php endif; ?></a>
       <a class="<?= $nav('ext') ?>" href="<?= e(url('admin/extensions')) ?>">คำขอขยายอายุ<?php if ($badges['ext']): ?><span class="count-badge"><?= (int)$badges['ext'] ?></span><?php endif; ?></a>
       <div class="group">หน่วย &amp; สิทธิ์</div>
       <a class="<?= $nav('wallet') ?>" href="<?= e(url('admin/wallets')) ?>">คลังหน่วยลูกค้า</a>
