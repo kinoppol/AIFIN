@@ -65,6 +65,18 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
               data-confirm="ยืนยันแลกหน่วยแทนลูกค้าตามอีเมลและจำนวนที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+          <div class="field"><label>แพ็กเกจ AI ที่ต้องการ</label>
+            <?php if ($plans): ?>
+              <select class="input" name="plan_id" required>
+                <option value="">— เลือกแพ็กเกจ AI —</option>
+                <?php foreach ($plans as $p): ?>
+                  <option value="<?= (int) $p['id'] ?>"><?= e($p['name']) ?><?= $p['vendor'] ? ' — ' . e($p['vendor']) : '' ?></option>
+                <?php endforeach; ?>
+              </select>
+            <?php else: ?>
+              <div class="muted" style="font-size:12.5px">ยังไม่มีแพ็กเกจ AI ที่เปิดใช้งาน — เพิ่มได้ที่เมนู "แพ็กเกจ AI"</div>
+            <?php endif; ?>
+          </div>
           <div class="field"><label>อีเมลที่ต้องการผูกบัญชี (เฉพาะอีเมลที่ลูกค้าลงทะเบียนไว้)</label>
             <?php if ($emails): ?>
               <select class="input" name="email" required>
@@ -83,7 +95,7 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
                    data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
           <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ AI Pro <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
           <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
-          <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= ($maxRedeem<1 || !$emails)?'disabled':'' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
+          <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= ($maxRedeem<1 || !$emails || !$plans)?'disabled':'' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
           <?php if ($expired): ?>
             <div class="faint" style="font-size:11.5px;margin-top:8px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
           <?php else: ?>
@@ -132,7 +144,7 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
         <div class="stack" style="gap:10px;margin-top:14px">
           <?php foreach ($seats as $s): ?>
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--sunk)">
-              <span class="muted" style="font-size:12.5px"><?= e($s['email']) ?></span>
+              <span class="muted" style="font-size:12.5px"><?= e($s['email']) ?><?php if (!empty($s['plan_name'])): ?><span class="faint"> · <?= e($s['plan_name']) ?></span><?php endif; ?></span>
               <span class="mono" style="font-size:12px">ถึง <?= thai_date($s['until_date']) ?></span>
             </div>
           <?php endforeach; ?>

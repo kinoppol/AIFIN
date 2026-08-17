@@ -22,11 +22,12 @@ $akStatus = function (string $s): array {
   </div>
   <div class="table-wrap">
     <table class="data">
-      <thead><tr><th>อีเมล</th><th>สัญญา</th><th>สิทธิ์</th><th>สถานะ</th><th>วันที่ได้รับ</th><th>สิ้นสุดการใช้งาน</th></tr></thead>
+      <thead><tr><th>อีเมล</th><th>แพ็กเกจ AI</th><th>สัญญา</th><th>สิทธิ์</th><th>สถานะ</th><th>วันที่ได้รับ</th><th>สิ้นสุดการใช้งาน</th></tr></thead>
       <tbody>
       <?php foreach ($seats as $s): ?>
         <tr>
           <td style="word-break:break-all"><?= e($s['email']) ?></td>
+          <td class="muted" style="font-size:12.5px"><?= !empty($s['plan_name']) ? e($s['plan_name']) : '<span class="faint">—</span>' ?></td>
           <td class="mono faint" style="font-size:12px"><?= e($s['contract_no']) ?></td>
           <td class="mono" style="font-weight:600"><?= units($s['units']) ?> · <?= (int)$s['days'] ?> วัน</td>
           <td><?= pill('redeem', $s['status']) ?></td>
@@ -34,7 +35,7 @@ $akStatus = function (string $s): array {
           <td class="mono" style="font-size:12.5px"><?= $s['expires_at'] ? thai_date($s['expires_at']) : '<span class="faint">—</span>' ?></td>
         </tr>
       <?php endforeach; ?>
-      <?php if (!$seats): ?><tr><td colspan="6" class="muted" style="text-align:center;padding:26px">ยังไม่มีบัญชีสิทธิ์ AI Pro — แลกหน่วยจากสัญญาเพื่อขอสิทธิ์</td></tr><?php endif; ?>
+      <?php if (!$seats): ?><tr><td colspan="7" class="muted" style="text-align:center;padding:26px">ยังไม่มีบัญชีสิทธิ์ AI Pro — แลกหน่วยจากสัญญาเพื่อขอสิทธิ์</td></tr><?php endif; ?>
       </tbody>
     </table>
   </div>

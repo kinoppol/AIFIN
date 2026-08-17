@@ -120,7 +120,7 @@ $redeemCap  = (int) config('app.max_redeem_units', 12);
         <?php foreach ($redeems as $r): ?>
           <div style="padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--sunk)">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <span class="muted" style="font-size:12.5px;word-break:break-all"><?= e($r['email']) ?></span>
+              <span class="muted" style="font-size:12.5px;word-break:break-all"><?= e($r['email']) ?><?php if (!empty($r['plan_name'])): ?><span class="faint"> · <?= e($r['plan_name']) ?></span><?php endif; ?></span>
               <?= pill('redeem', $r['status']) ?>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11.5px">
@@ -221,6 +221,19 @@ $redeemCap  = (int) config('app.max_redeem_units', 12);
       <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <p class="muted" style="margin:0 0 14px;font-size:12.5px">คงเหลือ <?= (int)$c['units_remaining'] ?> M · แลกได้ครั้งละไม่เกิน <?= $redeemCap ?> หน่วย</p>
+    <div class="field"><label>แพ็กเกจ AI ที่ต้องการ</label>
+      <?php if ($plans): ?>
+        <select class="input" name="plan_id" required>
+          <option value="">— เลือกแพ็กเกจ AI —</option>
+          <?php foreach ($plans as $p): ?>
+            <option value="<?= (int) $p['id'] ?>"><?= e($p['name']) ?><?= $p['vendor'] ? ' — ' . e($p['vendor']) : '' ?></option>
+          <?php endforeach; ?>
+        </select>
+        <div class="faint" style="font-size:11.5px;margin-top:6px">แผนรายเดือนระดับ Pro · 1 M = <?= (int)$c['unit_days'] ?> วัน</div>
+      <?php else: ?>
+        <div class="muted" style="font-size:12.5px">ยังไม่มีแพ็กเกจ AI ให้เลือก — กรุณาติดต่อผู้ดูแลระบบ</div>
+      <?php endif; ?>
+    </div>
     <div class="field"><label>อีเมลที่จะผูกสิทธิ์ (เลือกจากอีเมลที่ลงทะเบียนไว้)</label>
       <?php if ($emails): ?>
         <select class="input" name="email" required>
@@ -245,7 +258,7 @@ $redeemCap  = (int) config('app.max_redeem_units', 12);
     <?php endif; ?>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
       <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
-      <button class="btn btn-primary" type="submit" <?= ($maxRedeem<1 || !$emails)?'disabled':'' ?>><?= icon('redeem', 15) ?>ส่งคำขอแลก</button>
+      <button class="btn btn-primary" type="submit" <?= ($maxRedeem<1 || !$emails || !$plans)?'disabled':'' ?>><?= icon('redeem', 15) ?>ส่งคำขอแลก</button>
     </div>
   </form>
 </dialog>

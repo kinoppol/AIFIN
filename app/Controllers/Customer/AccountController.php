@@ -4,6 +4,7 @@ namespace App\Controllers\Customer;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
+use App\Models\AiPlan;
 use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\CustomerEmail;
@@ -265,6 +266,7 @@ class AccountController extends Controller
             'exts'    => ExtensionRequest::forContract($id),
             'apikeys' => ApiKey::forContract($id),
             'payment' => Payment::latestForContract($id),
+            'plans'   => AiPlan::selectable(),
             'emails'  => CustomerEmail::activeForUser(Auth::ownerId()),
             'maxExt'  => (int) config('app.max_extension_months', 6),
         ], 'layouts/customer');
@@ -281,7 +283,7 @@ class AccountController extends Controller
             $this->redirect('account');
         }
         try {
-            (new ContractService())->redeem($contractId, trim((string) $this->input('email')), (int) $this->input('units'));
+            (new ContractService())->redeem($contractId, trim((string) $this->input('email')), (int) $this->input('units'), (int) $this->input('plan_id'));
             $this->flash('success', 'ส่งคำขอแลกหน่วยเข้าคิวจัดหาสิทธิ์แล้ว');
         } catch (\Throwable $e) {
             $this->flash('danger', $e->getMessage());

@@ -3,6 +3,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Csrf;
+use App\Models\AiPlan;
 use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\CustomerEmail;
@@ -63,6 +64,7 @@ class ContractController extends Controller
             'seats'    => Redemption::seatsForContract($id),
             'apikeys'  => ApiKey::forContract($id),
             'payment'  => Payment::latestForContract($id),
+            'plans'    => AiPlan::selectable(),
             'emails'   => CustomerEmail::forContract($id),
             'exts'     => ExtensionRequest::forContract($id),
             'maxExt'   => (int) config('app.max_extension_months', 6),
@@ -105,7 +107,7 @@ class ContractController extends Controller
         $email = trim((string) $this->input('email'));
         $units = (int) $this->input('units');
         try {
-            (new ContractService())->redeem($contractId, $email, $units);
+            (new ContractService())->redeem($contractId, $email, $units, (int) $this->input('plan_id'));
             $this->flash('success', 'ส่งคำขอแลกเข้าคิวจัดหาสิทธิ์แล้ว');
         } catch (\Throwable $e) {
             $this->flash('danger', $e->getMessage());

@@ -66,10 +66,10 @@ class Redemption extends Model
     public static function seatsForContract(int $contractId): array
     {
         $stmt = static::db()->prepare(
-            "SELECT email, MAX(expires_at) AS until_date
+            "SELECT email, plan_name, MAX(expires_at) AS until_date
              FROM redemptions
              WHERE contract_id = ? AND status = 'success'
-             GROUP BY email ORDER BY until_date DESC"
+             GROUP BY email, plan_name ORDER BY until_date DESC"
         );
         $stmt->execute([$contractId]);
         return $stmt->fetchAll();

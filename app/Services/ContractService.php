@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Config;
+use App\Models\AiPlan;
 use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\CustomerEmail;
@@ -130,7 +131,7 @@ class ContractService
      * Redeem units from a contract against an email. Subtracts units, writes the
      * ledger entry, and enqueues a redemption for provisioning.
      */
-    public function redeem(int $contractId, string $email, int $units): int
+    public function redeem(int $contractId, string $email, int $units, int $planId = 0): int
     {
         if ($units <= 0) {
             throw new RuntimeException('จำนวนหน่วยต้องมากกว่า 0');
@@ -165,6 +166,14 @@ class ContractService
             if ($ownerId <= 0 || !CustomerEmail::isRegistered($ownerId, $email)) {
                 throw new RuntimeException('อีเมลนี้ยังไม่ได้ลงทะเบียน กรุณาลงทะเบียนอีเมลก่อนแลกสิทธิ์');
             }
+            // Which monthly AI plan the seat should be provisioned on.
+            $plan = $planId > 0 ? AiPlan::find($planId) : null;
+            if (!$plan) {
+                throw new RuntimeException('กรุณาเลือกแพ็กเกจ AI ที่ต้องการ');
+            }
+            if (($plan['status'] ?? 'active') !== 'active') {
+                throw new RuntimeException('แพ็กเกจ AI นี้ถูกระงับการใช้งานแล้ว');
+            }
             $days = $units * (int) $c['unit_days'];
             $balance = (int) $c['units_remaining'] - $units;
 
@@ -173,7 +182,7 @@ class ContractService
             UnitLedger::insert([
                 'contract_id' => $contractId,
                 'entry_date'  => date('Y-m-d'),
-                'description' => "แลกสิทธิ์ → {$email} ({$days} วัน)",
+                'description' => "แลกสิทธิ์ {$plan['name']} → {$email} ({$days} วัน)",
                 'amount'      => -$units,
                 'balance'     => $balance,
                 'type'        => 'redeem',
@@ -184,6 +193,8 @@ class ContractService
                 'redeem_no'   => Redemption::nextNo(),
                 'contract_id' => $contractId,
                 'email'       => $email,
+                'plan_id'     => (int) $plan['id'],
+                'plan_name'   => $plan['name'],
                 'units'       => $units,
                 'days'        => $days,
                 'status'      => 'pending',

@@ -33,6 +33,7 @@ $nav = function (string $key) use ($active) {
       <a class="<?= $nav('gpu') ?>" href="<?= e(url('admin/gpu')) ?>">GPU &amp; API Keys<?php if (!empty($badges['gpu'])): ?><span class="count-badge"><?= (int)$badges['gpu'] ?></span><?php endif; ?></a>
       <div class="group">การขาย</div>
       <a class="<?= $nav('pack') ?>" href="<?= e(url('admin/packages')) ?>">แพ็กเกจ &amp; โปรโมชั่น</a>
+      <a class="<?= $nav('plans') ?>" href="<?= e(url('admin/plans')) ?>">แพ็กเกจ AI</a>
       <div class="group">ระบบ</div>
       <a class="<?= $nav('migrations') ?>" href="<?= e(url('admin/migrations')) ?>">Migrations ฐานข้อมูล</a>
     </nav>
