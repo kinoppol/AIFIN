@@ -157,8 +157,10 @@ class AccountController extends Controller
         $userId = Auth::ownerId();
         $q = trim((string) $this->input('q'));
         $emails = CustomerEmail::forUser($userId, $q);
+        $planUsage = CustomerEmail::planUsageByEmail($userId);
         foreach ($emails as &$row) {
-            $row['used'] = CustomerEmail::usageCount($userId, $row['email']);
+            $row['used']  = CustomerEmail::usageCount($userId, $row['email']);
+            $row['plans'] = $planUsage[$row['email']] ?? [];
         }
         unset($row);
         $this->render('customer/emails', [

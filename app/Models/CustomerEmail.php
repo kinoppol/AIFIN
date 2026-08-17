@@ -82,6 +82,44 @@ class CustomerEmail extends Model
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Which AI plans each of a customer's emails is bound to, from the
+     * redemptions made against it.
+     *
+     * @return array<string,array<int,array{plan_name:string,units:int,cnt:int,until:?string,active:int}>>
+     *         keyed by email
+     */
+    public static function planUsageByEmail(int $userId): array
+    {
+        $stmt = static::db()->prepare(
+            "SELECT r.email,
+                    COALESCE(r.plan_name, 'ไม่ระบุแพ็กเกจ') AS plan_name,
+                    COUNT(*) AS cnt,
+                    SUM(r.units) AS units,
+                    SUM(r.status = 'success') AS active,
+                    MIN(r.provisioned_at) AS since,
+                    MAX(r.expires_at) AS until
+             FROM redemptions r
+             JOIN contracts c ON c.id = r.contract_id
+             WHERE c.user_id = ?
+             GROUP BY r.email, plan_name
+             ORDER BY plan_name ASC"
+        );
+        $stmt->execute([$userId]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[$row['email']][] = [
+                'plan_name' => (string) $row['plan_name'],
+                'units'     => (int) $row['units'],
+                'cnt'       => (int) $row['cnt'],
+                'active'    => (int) $row['active'],
+                'since'     => $row['since'],
+                'until'     => $row['until'],
+            ];
+        }
+        return $out;
+    }
+
     public static function deleteForUser(int $id, int $userId): void
     {
         $stmt = static::db()->prepare("DELETE FROM customer_emails WHERE id = ? AND user_id = ?");

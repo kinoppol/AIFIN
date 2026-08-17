@@ -1,5 +1,5 @@
 <?php
-/** @var array $emails registered emails (each with a 'used' seat count)
+/** @var array $emails registered emails (each with a 'used' seat count and a 'plans' breakdown)
  *  @var string $q current search term
  *  @var int $total total registered emails (before filtering) */
 ?>
@@ -29,12 +29,34 @@
   </div>
   <div class="table-wrap">
     <table class="data">
-      <thead><tr><th>อีเมล</th><th>ชื่อเรียก</th><th>สถานะ</th><th>ใช้แลกสิทธิ์แล้ว</th><th>วันที่ลงทะเบียน</th><th></th></tr></thead>
+      <thead><tr><th>อีเมล</th><th>ชื่อเรียก</th><th>แพ็กเกจที่ผูกอยู่ / ช่วงเวลาใช้งาน</th><th>สถานะ</th><th>ใช้แลกสิทธิ์แล้ว</th><th>วันที่ลงทะเบียน</th><th></th></tr></thead>
       <tbody>
       <?php foreach ($emails as $m): $active = ($m['status'] ?? 'active') === 'active'; $used = (int) $m['used']; ?>
         <tr>
           <td style="word-break:break-all"><?= e($m['email']) ?></td>
           <td class="muted" style="font-size:12.5px"><?= $m['label'] ? e($m['label']) : '<span class="faint">—</span>' ?></td>
+          <td>
+            <?php if ($m['plans']): ?>
+              <div class="stack" style="gap:6px">
+                <?php foreach ($m['plans'] as $pl): ?>
+                  <div style="font-size:12.5px">
+                    <span style="font-weight:600"><?= e($pl['plan_name']) ?></span>
+                    <span class="faint">· <?= units($pl['units']) ?> · <?= (int) $pl['cnt'] ?> คำขอ</span>
+                    <div class="muted" style="font-size:11.5px;margin-top:2px">
+                      <?php if ($pl['since']): ?>
+                        เริ่ม <?= thai_date(substr((string) $pl['since'], 0, 10)) ?>
+                        <?= $pl['until'] ? ' → สิ้นสุด ' . thai_date($pl['until']) : ' → รอกำหนดวันสิ้นสุด' ?>
+                      <?php else: ?>
+                        <span class="faint">ยังไม่จัดหา — ช่วงเวลาเริ่มนับเมื่อจัดหาสำเร็จ</span>
+                      <?php endif; ?>
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            <?php else: ?>
+              <span class="faint" style="font-size:12.5px">ยังไม่ผูกกับแพ็กเกจใด</span>
+            <?php endif; ?>
+          </td>
           <td><span class="pill <?= $active ? 'pill-ok' : 'pill-off' ?>"><?= $active ? 'ใช้งาน' : 'ระงับ' ?></span></td>
           <td class="mono"><?= $used ?> ครั้ง</td>
           <td class="muted" style="font-size:12.5px"><?= thai_date(substr((string) $m['created_at'], 0, 10)) ?></td>
@@ -61,7 +83,7 @@
         </tr>
       <?php endforeach; ?>
       <?php if (!$emails): ?>
-        <tr><td colspan="6" class="muted" style="text-align:center;padding:26px"><?= $q !== '' ? 'ไม่พบอีเมลที่ค้นหา' : 'ยังไม่มีอีเมลที่ลงทะเบียน' ?></td></tr>
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:26px"><?= $q !== '' ? 'ไม่พบอีเมลที่ค้นหา' : 'ยังไม่มีอีเมลที่ลงทะเบียน' ?></td></tr>
       <?php endif; ?>
       </tbody>
     </table>
