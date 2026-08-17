@@ -51,6 +51,9 @@ $router->post('account/payment', [AccountController::class, 'submitPayment']);
 $router->get('account/quotation', [AccountController::class, 'quotation']);
 $router->get('account/receipt',  [AccountController::class, 'receipt']);
 $router->get('account/proof',    [AccountController::class, 'proof']);
+$router->get('account/emails',   [AccountController::class, 'emails']);
+$router->post('account/emails',  [AccountController::class, 'addEmail']);
+$router->post('account/emails/delete', [AccountController::class, 'deleteEmail']);
 
 // Admin area
 $router->get('admin',                    [DashboardController::class, 'index']);

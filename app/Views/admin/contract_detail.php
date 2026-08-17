@@ -65,14 +65,25 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
               data-confirm="ยืนยันแลกหน่วยแทนลูกค้าตามอีเมลและจำนวนที่ระบุ?&#10;อีเมลจะถูกผูกกับสิทธิ์และเปลี่ยนไม่ได้ภายหลัง" data-confirm-title="ยืนยันการแลกหน่วย" data-confirm-ok="ยืนยันการแลก">
           <?= csrf_field() ?>
           <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
-          <div class="field"><label>อีเมลที่ต้องการผูกบัญชี</label><input class="input" type="email" name="email" required placeholder="user@example.com"></div>
+          <div class="field"><label>อีเมลที่ต้องการผูกบัญชี (เฉพาะอีเมลที่ลูกค้าลงทะเบียนไว้)</label>
+            <?php if ($emails): ?>
+              <select class="input" name="email" required>
+                <option value="">— เลือกอีเมล —</option>
+                <?php foreach ($emails as $m): ?>
+                  <option value="<?= e($m['email']) ?>"><?= e($m['email']) ?><?= $m['label'] ? ' (' . e($m['label']) . ')' : '' ?></option>
+                <?php endforeach; ?>
+              </select>
+            <?php else: ?>
+              <div class="muted" style="font-size:12.5px">ลูกค้ายังไม่ได้ลงทะเบียนอีเมล — ต้องให้ลูกค้าลงทะเบียนอีเมลก่อนจึงจะแลกสิทธิ์ได้</div>
+            <?php endif; ?>
+          </div>
           <?php $maxRedeem = contract_max_redeem($c); $expired = contract_is_expired($c); $cap = (int) config('app.max_redeem_units', 12); ?>
           <div class="field"><label>จำนวนหน่วยที่แลก (แลกได้สูงสุด <?= $maxRedeem ?> M ต่อครั้ง)</label>
             <input class="input" type="number" name="units" min="1" max="<?= $maxRedeem ?>" required
                    data-redeem-units data-unit-days="<?= (int)$c['unit_days'] ?>" <?= $maxRedeem<1?'disabled':'' ?>></div>
           <div class="muted" style="font-size:12.5px;margin:2px 0 2px">= สิทธิ์ AI Pro <b data-redeem-days style="color:var(--text)">0</b> วัน · เริ่มนับเมื่อจัดหาสำเร็จ</div>
           <div data-redeem-warn style="display:none;color:var(--danger);font-size:12px;margin-bottom:6px"></div>
-          <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= $maxRedeem<1?'disabled':'' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
+          <button class="btn btn-primary btn-block" style="margin-top:8px" type="submit" <?= ($maxRedeem<1 || !$emails)?'disabled':'' ?>>ยืนยันการแลกและส่งเข้าคิว</button>
           <?php if ($expired): ?>
             <div class="faint" style="font-size:11.5px;margin-top:8px;color:var(--warn)">* สัญญาหมดอายุแล้ว แลกหน่วยที่เหลือไม่ได้ (สิทธิ์ที่แลกไปแล้วยังใช้ได้จนครบ)</div>
           <?php else: ?>

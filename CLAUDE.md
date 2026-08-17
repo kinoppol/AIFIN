@@ -10,13 +10,17 @@ Domain rule that drives everything: **1 unit "M" = 30 days of access** (value fi
 
 **Payment/approval** (migration `007`): a customer-created contract starts `payment_status='unpaid'` (รอการชำระเงิน) — units sit in the wallet but redeem/API-key are blocked. The customer views a **quotation**, then notifies payment with a proof file (`payments` table, stored under `storage/uploads/payments/`, served auth-gated via `account/proof`) → `submitted`. An admin verifies on `admin/payments` and approves → `paid` (usable) or rejects → back to `unpaid`. Admin-created contracts and the demo seed pass `'paid'`. `contract_status_pill()` surfaces the payment stage in listings. Logic: `ContractService::{submitPayment, approvePayment, rejectPayment}`.
 
+**Registered emails** (migration `009`): a customer must register the emails that may be bound to an AI Pro seat (`customer_emails`, unique per user+email; page `account/emails`). Redeem forms — customer modal and the admin "แลกหน่วยแทนลูกค้า" form — only offer registered addresses, and `ContractService::redeem()` rejects anything else. An email already used by a redemption can't be deleted.
+
+**Contract term start**: the 1-year term is counted from the day the admin **approves the payment** — `approvePayment()` rewrites `start_date`/`base_end_date`/`end_date` (re-applying `extension_months_used`). Dates written at purchase time are provisional and the customer page shows "รออนุมัติ" until then. Admin-created contracts (created `paid`) keep their creation date.
+
 **GPU rental** is a parallel resource on the same contracts (migration `003`): **1 unit "G" = one GPU card**, and **1 G = 30 days of API access** (`contracts.gpu_total`/`gpu_remaining`). Cards come from dedicated GPU packages (`packages.kind='gpu'`) or are bundled free with an AI package (`packages.bonus_gpu`, admin-set). To get an **API key** the customer picks how many G to spend (default 1); the key spends that many cards (`api_keys.gpu_units`) and is valid for `gpu_units * 30` days (`api_keys.days`) **counted from the provision date** (`api_keys.expires_at`, migrations `005`/`006`). The admin provisions it with a **BASE URL + API key**, then the customer sees the credentials; marking a not-yet-active key `failed` refunds its cards. GPU logic lives in `ContractService` (`purchaseGpu`, `requestApiKey`, `provisionApiKey`, `setApiKeyStatus`); admin page is `admin/gpu`.
 
 ## Run / install
 
-- Serve the repo root under Apache (`http://localhost/AIFIN/`) or via the dev server: `php -S 127.0.0.1:8000 -t .` (use full path `C:\xampp\php\php.exe` — `php` isn't on PATH).
+- Serve the repo root under Apache (`http://localhost/AIFIN/`) or via the dev server: `php -S 127.0.0.1:8000 -t .` (`php` isn't on PATH — use a full path; this checkout lives under `C:\xampp2\htdocs`, so prefer `C:\xampp2\php\php.exe`).
 - First run redirects to **`install.php`**. It is **re-runnable**: creates the DB, writes `config/config.php` (gitignored — holds DB creds + `app_key`), runs migrations, seeds packages + the admin account (credentials set during install), optional demo data, and has a "fresh install" wipe checkbox.
-- Lint everything: `find . -name '*.php' -not -path './project/*' | while read f; do C:/xampp/php/php.exe -l "$f"; done`
+- Lint everything (Bash tool, not PowerShell): `find . -name '*.php' -not -path './project/*' | while read f; do C:/xampp2/php/php.exe -l "$f"; done`
 - There is no automated test suite; verify by driving the HTTP flow (install → login → admin/customer actions).
 
 ## ⚠️ MariaDB thread-pool crash (important)
@@ -33,8 +37,10 @@ Layers (all under `app/`):
 - **Core/** — `Router`, `Controller`, `View` (plain-PHP templates + layouts), `Model` (tiny active-record base), `Database` (PDO singleton), `Config`, `Auth` (session), `Csrf`, `Migrator`.
 - **Models/** — thin table classes (`User`, `Contract`, `Package`, `UnitLedger`, `Redemption`, `ExtensionRequest`, `Setting`).
 - **Services/ContractService.php** — **all business rules live here**, inside transactions: `purchase`, `redeem`, `requestExtension`/`approveExtension`/`rejectExtension`, redemption status. Enforces unit balances, ledger consistency, and the 6-month extension cap (over-quota requests are flagged/blocked, not accepted). Controllers stay thin — put new domain logic here.
-- **Controllers/** — `LandingController`, `AuthController`, `Customer\AccountController`, `Admin\*` (Dashboard, Contract, Wallet, Redeem, Extension, Package, Migration).
+- **Controllers/** — `LandingController`, `AuthController`, `Customer\AccountController`, `Admin\*` (Dashboard, Contract, Wallet, Redeem, Extension, Package, Payment, ApiKey, Migration). The full route table lives in `index.php` — read it first to find which controller owns a URL.
 - **Views/** — `layouts/app.php` is the admin shell (the default layout, used only by admin); landing/customer/auth use their own layouts. `partials/head.php` and `partials/flash.php` are shared. Design tokens are in `assets/css/app.css` (ported from the prototype's CSS variables, incl. light/dark).
+
+Printable documents (quotation, receipt) render through `layouts/plain.php`; their markup lives in `Views/partials/{quotation,receipt}.php` and is shared by the on-screen page and the print view — edit the partial, not both pages.
 
 Record IDs are passed as `?id=` query params (the router matches only the static path). CSRF: every POST form includes `csrf_field()` and its controller calls `Csrf::verify()`.
 

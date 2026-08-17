@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Models\ApiKey;
 use App\Models\Contract;
+use App\Models\CustomerEmail;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
 use App\Models\Payment;
@@ -125,6 +126,69 @@ class AccountController extends Controller
         $this->redirect('account/contract?id=' . $contractId);
     }
 
+    /** Manage the emails that may be bound to an AI Pro seat. */
+    public function emails(): void
+    {
+        $this->requireAuth();
+        $userId = Auth::id();
+        $emails = CustomerEmail::forUser($userId);
+        foreach ($emails as &$row) {
+            $row['used'] = CustomerEmail::usageCount($userId, $row['email']);
+        }
+        unset($row);
+        $this->render('customer/emails', [
+            'title'  => 'อีเมลที่ลงทะเบียน',
+            'emails' => $emails,
+        ], 'layouts/customer');
+    }
+
+    public function addEmail(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::id();
+        $email = strtolower(trim((string) $this->input('email')));
+        $label = trim((string) $this->input('label'));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->flash('danger', 'อีเมลไม่ถูกต้อง');
+        } elseif (CustomerEmail::isRegistered($userId, $email)) {
+            $this->flash('danger', 'อีเมลนี้ลงทะเบียนไว้แล้ว');
+        } else {
+            CustomerEmail::insert([
+                'user_id' => $userId,
+                'email'   => $email,
+                'label'   => $label !== '' ? $label : null,
+            ]);
+            $this->flash('success', 'ลงทะเบียนอีเมลแล้ว');
+        }
+        $this->redirect($this->backTo('account/emails'));
+    }
+
+    public function deleteEmail(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::id();
+        $id = (int) $this->input('id');
+        $row = CustomerEmail::find($id);
+        if (!$row || (int) $row['user_id'] !== $userId) {
+            $this->flash('danger', 'ไม่พบอีเมล');
+        } elseif (CustomerEmail::usageCount($userId, $row['email']) > 0) {
+            $this->flash('danger', 'อีเมลนี้ถูกใช้แลกสิทธิ์แล้ว ไม่สามารถลบได้');
+        } else {
+            CustomerEmail::deleteForUser($id, $userId);
+            $this->flash('success', 'ลบอีเมลแล้ว');
+        }
+        $this->redirect('account/emails');
+    }
+
+    /** Allow the add-email form to return to the page it was opened from. */
+    private function backTo(string $default): string
+    {
+        $to = trim((string) $this->input('return'));
+        return $to !== '' && strpos($to, 'account') === 0 ? $to : $default;
+    }
+
     public function contract(): void
     {
         $this->requireAuth();
@@ -143,6 +207,7 @@ class AccountController extends Controller
             'exts'    => ExtensionRequest::forContract($id),
             'apikeys' => ApiKey::forContract($id),
             'payment' => Payment::latestForContract($id),
+            'emails'  => CustomerEmail::forUser(Auth::id()),
             'maxExt'  => (int) config('app.max_extension_months', 6),
         ], 'layouts/customer');
     }

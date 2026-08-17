@@ -5,6 +5,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Models\ApiKey;
 use App\Models\Contract;
+use App\Models\CustomerEmail;
 use App\Models\Payment;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
@@ -62,6 +63,7 @@ class ContractController extends Controller
             'seats'    => Redemption::seatsForContract($id),
             'apikeys'  => ApiKey::forContract($id),
             'payment'  => Payment::latestForContract($id),
+            'emails'   => CustomerEmail::forContract($id),
             'exts'     => ExtensionRequest::forContract($id),
             'maxExt'   => (int) config('app.max_extension_months', 6),
             'badges'   => DashboardController::badges(),

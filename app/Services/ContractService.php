@@ -5,6 +5,7 @@ use App\Core\Database;
 use App\Core\Config;
 use App\Models\ApiKey;
 use App\Models\Contract;
+use App\Models\CustomerEmail;
 use App\Models\Payment;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
@@ -158,6 +159,11 @@ class ContractService
             }
             if ((int) $c['units_remaining'] < $units) {
                 throw new RuntimeException('หน่วยคงเหลือไม่พอสำหรับการแลก');
+            }
+            // The email must have been registered by the contract owner beforehand.
+            $ownerId = (int) ($c['user_id'] ?? 0);
+            if ($ownerId <= 0 || !CustomerEmail::isRegistered($ownerId, $email)) {
+                throw new RuntimeException('อีเมลนี้ยังไม่ได้ลงทะเบียน กรุณาลงทะเบียนอีเมลก่อนแลกสิทธิ์');
             }
             $days = $units * (int) $c['unit_days'];
             $balance = (int) $c['units_remaining'] - $units;
@@ -351,7 +357,19 @@ class ContractService
         if ($p) {
             Payment::update((int) $p['id'], ['status' => 'approved', 'verified_at' => date('Y-m-d H:i:s')]);
         }
-        Contract::update($contractId, ['payment_status' => 'paid']);
+        // The contract term starts on the day the admin approves the payment,
+        // not on the day the customer created it. Any extension months already
+        // granted are re-applied on top of the new base end date.
+        $start   = date('Y-m-d');
+        $baseEnd = date('Y-m-d', strtotime("{$start} +{$this->contractMonths()} months"));
+        $extUsed = (int) ($c['extension_months_used'] ?? 0);
+        $end     = $extUsed > 0 ? date('Y-m-d', strtotime("{$baseEnd} +{$extUsed} months")) : $baseEnd;
+        Contract::update($contractId, [
+            'payment_status' => 'paid',
+            'start_date'     => $start,
+            'base_end_date'  => $baseEnd,
+            'end_date'       => $end,
+        ]);
         Contract::refreshStatus($contractId);
     }
 
