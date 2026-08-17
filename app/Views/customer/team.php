@@ -7,17 +7,6 @@
 
 <p class="muted" style="margin:0 0 18px;font-size:13px">เพิ่มผู้ใช้ที่ช่วยดูแลบัญชีของคุณ — ผู้ช่วยเข้าสู่ระบบด้วยอีเมลของตัวเอง และทำงานกับสัญญา/อีเมล/API Key ชุดเดียวกับคุณ (แต่จัดการรายชื่อผู้ช่วยไม่ได้)</p>
 
-<div class="card" style="padding:20px;margin-bottom:22px;max-width:640px">
-  <div style="font-weight:600;margin-bottom:12px">เพิ่มผู้ช่วยใหม่</div>
-  <form method="post" action="<?= e(url('account/team')) ?>" style="display:grid;gap:12px">
-    <?= csrf_field() ?>
-    <div class="field"><label>ชื่อผู้ช่วย</label><input class="input" type="text" name="name" required maxlength="190" placeholder="เช่น คุณสมหญิง (ฝ่ายธุรการ)"></div>
-    <div class="field"><label>อีเมลสำหรับเข้าสู่ระบบ</label><input class="input" type="email" name="email" required placeholder="assistant@example.com"></div>
-    <div class="field"><label>รหัสผ่านเริ่มต้น (อย่างน้อย 6 ตัวอักษร)</label><input class="input" type="password" name="password" required minlength="6"></div>
-    <div><button class="btn btn-primary" type="submit">เพิ่มผู้ช่วย</button></div>
-  </form>
-</div>
-
 <div class="card" style="overflow:hidden">
   <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <span style="font-weight:600">รายชื่อผู้ช่วย (<?= count($assistants) ?><?= $q !== '' ? ' จาก ' . (int) $total : '' ?>)</span>
@@ -26,6 +15,7 @@
       <button class="btn btn-sm" type="submit">ค้นหา</button>
       <?php if ($q !== ''): ?><a class="btn btn-sm btn-ghost" href="<?= e(url('account/team')) ?>">ล้าง</a><?php endif; ?>
     </form>
+    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-user-modal').showModal()">+ เพิ่มผู้ช่วย</button>
   </div>
   <div class="table-wrap">
     <table class="data">
@@ -62,6 +52,24 @@
     </table>
   </div>
 </div>
+
+<dialog id="add-user-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/team')) ?>" style="padding:22px">
+    <?= csrf_field() ?>
+    <div class="modal-head" style="margin-bottom:10px">
+      <h3 style="margin:0;font-size:17px">เพิ่มผู้ช่วยใหม่</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 12px;font-size:12.5px">ผู้ช่วยจะเข้าสู่ระบบด้วยอีเมลและรหัสผ่านนี้ แล้วทำงานกับข้อมูลบัญชีของคุณ</p>
+    <div class="field"><label>ชื่อผู้ช่วย</label><input class="input" type="text" name="name" required maxlength="190" placeholder="เช่น คุณสมหญิง (ฝ่ายธุรการ)"></div>
+    <div class="field"><label>อีเมลสำหรับเข้าสู่ระบบ</label><input class="input" type="email" name="email" required placeholder="assistant@example.com"></div>
+    <div class="field"><label>รหัสผ่านเริ่มต้น (อย่างน้อย 6 ตัวอักษร)</label><input class="input" type="password" name="password" required minlength="6" autocomplete="new-password"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button class="btn btn-primary" type="submit">เพิ่มผู้ช่วย</button>
+    </div>
+  </form>
+</dialog>
 
 <?php foreach ($assistants as $a): ?>
 <dialog id="edit-user-<?= (int) $a['id'] ?>" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">

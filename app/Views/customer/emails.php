@@ -8,16 +8,6 @@
 
 <p class="muted" style="margin:0 0 18px;font-size:13px">ลงทะเบียนอีเมลที่จะใช้ผูกกับบัญชี AI Pro ไว้ล่วงหน้า — ตอนแลกสิทธิ์จะเลือกได้เฉพาะอีเมลที่ "ใช้งาน" ในรายการนี้เท่านั้น</p>
 
-<div class="card" style="padding:20px;margin-bottom:22px;max-width:640px">
-  <div style="font-weight:600;margin-bottom:12px">เพิ่มอีเมลใหม่<?php if ($domains): ?> <span class="faint" style="font-weight:400;font-size:12.5px">(เฉพาะ @<?= e(implode(', @', array_column($domains, 'domain'))) ?>)</span><?php endif; ?></div>
-  <form method="post" action="<?= e(url('account/emails')) ?>" style="display:grid;gap:12px">
-    <?= csrf_field() ?>
-    <div class="field"><label>อีเมล</label><input class="input" type="email" name="email" required placeholder="user@example.com"></div>
-    <div class="field"><label>ชื่อเรียก (ไม่บังคับ)</label><input class="input" type="text" name="label" maxlength="120" placeholder="เช่น ครูสมชาย / ห้องคอม 1"></div>
-    <div><button class="btn btn-primary" type="submit">ลงทะเบียนอีเมล</button></div>
-  </form>
-</div>
-
 <div class="card" style="overflow:hidden">
   <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <span style="font-weight:600">รายการอีเมล (<?= count($emails) ?><?= $q !== '' ? ' จาก ' . (int) $total : '' ?>)</span>
@@ -26,6 +16,7 @@
       <button class="btn btn-sm" type="submit">ค้นหา</button>
       <?php if ($q !== ''): ?><a class="btn btn-sm btn-ghost" href="<?= e(url('account/emails')) ?>">ล้าง</a><?php endif; ?>
     </form>
+    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-email-modal').showModal()">+ ลงทะเบียนอีเมล</button>
   </div>
   <div class="table-wrap">
     <table class="data">
@@ -89,6 +80,25 @@
     </table>
   </div>
 </div>
+
+<dialog id="add-email-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/emails')) ?>" style="padding:22px">
+    <?= csrf_field() ?>
+    <div class="modal-head" style="margin-bottom:10px">
+      <h3 style="margin:0;font-size:17px">ลงทะเบียนอีเมลใหม่</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <?php if ($domains): ?>
+      <p class="muted" style="margin:0 0 12px;font-size:12.5px">ลงทะเบียนได้เฉพาะอีเมลของโดเมน @<?= e(implode(', @', array_column($domains, 'domain'))) ?></p>
+    <?php endif; ?>
+    <div class="field"><label>อีเมล</label><input class="input" type="email" name="email" required placeholder="user@example.com"></div>
+    <div class="field"><label>ชื่อเรียก (ไม่บังคับ)</label><input class="input" type="text" name="label" maxlength="120" placeholder="เช่น ครูสมชาย / ห้องคอม 1"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button class="btn btn-primary" type="submit">ลงทะเบียนอีเมล</button>
+    </div>
+  </form>
+</dialog>
 
 <?php foreach ($emails as $m): $used = (int) $m['used']; ?>
 <dialog id="edit-email-<?= (int) $m['id'] ?>" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
