@@ -91,7 +91,10 @@ document.addEventListener('input', function (e) {
   function open(opts) {
     var danger = !!opts.danger;
     var alertOnly = opts.mode === 'alert';
-    var ov = document.createElement('div');
+    // A <dialog> (not a plain div) so this always lands in the browser's top
+    // layer — a plain overlay renders *underneath* an already-open showModal()
+    // dialog (e.g. the redeem form) and can't be clicked.
+    var ov = document.createElement('dialog');
     ov.className = 'modal-ov';
     ov.innerHTML =
       '<div class="modal-box" role="dialog" aria-modal="true">' +
@@ -109,23 +112,24 @@ document.addEventListener('input', function (e) {
     if (cancelBtn) cancelBtn.textContent = opts.cancelText || 'ยกเลิก';
 
     document.body.appendChild(ov);
+    ov.showModal();
     requestAnimationFrame(function () { ov.classList.add('show'); });
 
     return new Promise(function (resolve) {
+      var done = false;
       function close(val) {
+        if (done) return;
+        done = true;
         ov.classList.remove('show');
-        setTimeout(function () { ov.remove(); }, 180);
-        document.removeEventListener('keydown', onKey);
+        setTimeout(function () { if (ov.open) { ov.close(); } ov.remove(); }, 180);
         resolve(val);
       }
-      function onKey(e) {
-        if (e.key === 'Escape') close(false);
-        else if (e.key === 'Enter') close(true);
-      }
+      // Esc fires the dialog's own cancel event; Enter confirms.
+      ov.addEventListener('cancel', function (e) { e.preventDefault(); close(false); });
+      ov.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); close(true); } });
       ov.querySelector('[data-ok]').addEventListener('click', function () { close(true); });
       if (cancelBtn) cancelBtn.addEventListener('click', function () { close(false); });
       ov.addEventListener('click', function (e) { if (e.target === ov && !alertOnly) close(false); });
-      document.addEventListener('keydown', onKey);
       ov.querySelector('[data-ok]').focus();
     });
   }
@@ -139,23 +143,22 @@ document.addEventListener('input', function (e) {
 
   // Show arbitrary HTML in a styled modal with a single close button.
   AIFIN.openHtml = function (html) {
-    var ov = document.createElement('div');
+    var ov = document.createElement('dialog');
     ov.className = 'modal-ov';
     var box = document.createElement('div');
     box.className = 'modal-box';
     box.innerHTML = html + '<div class="modal-actions"><button type="button" class="btn btn-primary" data-close>ปิด</button></div>';
     ov.appendChild(box);
     document.body.appendChild(ov);
+    ov.showModal();
     requestAnimationFrame(function () { ov.classList.add('show'); });
     function close() {
       ov.classList.remove('show');
-      setTimeout(function () { ov.remove(); }, 180);
-      document.removeEventListener('keydown', onKey);
+      setTimeout(function () { if (ov.open) { ov.close(); } ov.remove(); }, 180);
     }
-    function onKey(e) { if (e.key === 'Escape') close(); }
+    ov.addEventListener('cancel', function (e) { e.preventDefault(); close(); });
     box.querySelector('[data-close]').addEventListener('click', close);
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
-    document.addEventListener('keydown', onKey);
   };
 })();
 
