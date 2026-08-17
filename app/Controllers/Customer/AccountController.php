@@ -274,7 +274,18 @@ class AccountController extends Controller
         $this->redirect('account/emails');
     }
 
-    /** Restrict which domains may be registered (empty list = ทุกโดเมน). */
+    /** Settings tab: which domains may be registered (empty list = ทุกโดเมน). */
+    public function domains(): void
+    {
+        $this->requireAuth();
+        $userId = Auth::ownerId();
+        $this->render('customer/domains', [
+            'title'      => 'โดเมนที่อนุญาต',
+            'domains'    => CustomerEmailDomain::forUser($userId),
+            'emailCount' => CustomerEmail::count('user_id = ?', [$userId]),
+        ], 'layouts/customer');
+    }
+
     public function addDomain(): void
     {
         $this->requireAuth();
@@ -289,7 +300,7 @@ class AccountController extends Controller
             CustomerEmailDomain::insert(['user_id' => $userId, 'domain' => $domain]);
             $this->flash('success', "จำกัดการลงทะเบียนอีเมลไว้ที่โดเมน {$domain} แล้ว");
         }
-        $this->redirect('account/emails');
+        $this->redirect('account/domains');
     }
 
     public function deleteDomain(): void
@@ -305,7 +316,7 @@ class AccountController extends Controller
             CustomerEmailDomain::deleteForUser($id, $userId);
             $this->flash('success', 'ลบโดเมนออกจากรายการแล้ว');
         }
-        $this->redirect('account/emails');
+        $this->redirect('account/domains');
     }
 
     /** Message listing the domains an address must belong to. */

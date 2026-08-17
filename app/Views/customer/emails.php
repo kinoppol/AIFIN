@@ -4,41 +4,9 @@
  *  @var int $total total registered emails (before filtering)
  *  @var array $domains allowed email domains (empty = any domain) */
 ?>
-<div style="margin-bottom:22px">
-  <h1 style="margin:0;font-size:26px">อีเมลที่ลงทะเบียน</h1>
-  <p class="muted" style="margin:6px 0 0">ลงทะเบียนอีเมลที่จะใช้ผูกกับบัญชี AI Pro ไว้ล่วงหน้า — ตอนแลกสิทธิ์จะเลือกได้เฉพาะอีเมลที่ "ใช้งาน" ในรายการนี้เท่านั้น</p>
-</div>
+<?= (new App\Core\View())->partial('partials/settings_tabs', ['tab' => 'emails']) ?>
 
-<div class="card" style="padding:20px;margin-bottom:22px;max-width:640px">
-  <div style="font-weight:600">จำกัดโดเมนที่ลงทะเบียนได้</div>
-  <div class="muted" style="font-size:12.5px;margin-top:3px">
-    <?php if ($domains): ?>
-      ลงทะเบียนได้เฉพาะอีเมลของโดเมนในรายการนี้ (รวมโดเมนย่อย) — ลบให้หมดหากต้องการอนุญาตทุกโดเมน
-    <?php else: ?>
-      ขณะนี้ยังไม่จำกัดโดเมน — เพิ่มโดเมนของหน่วยงานเพื่อให้ลงทะเบียนได้เฉพาะอีเมลของหน่วยงานเท่านั้น
-    <?php endif; ?>
-  </div>
-  <?php if ($domains): ?>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-      <?php foreach ($domains as $d): ?>
-        <form method="post" action="<?= e(url('account/emails/domains/delete')) ?>" style="display:inline-flex"
-              data-confirm="ลบโดเมน <?= e($d['domain']) ?> ออกจากรายการ?" data-confirm-title="ยืนยันการลบ" data-confirm-ok="ลบ" data-confirm-danger>
-          <?= csrf_field() ?>
-          <input type="hidden" name="id" value="<?= (int) $d['id'] ?>">
-          <button class="pill pill-info" type="submit" style="border:0;cursor:pointer;font:inherit;display:inline-flex;align-items:center;gap:6px">
-            @<?= e($d['domain']) ?> <span class="faint">✕</span>
-          </button>
-        </form>
-      <?php endforeach; ?>
-    </div>
-  <?php endif; ?>
-  <form method="post" action="<?= e(url('account/emails/domains')) ?>" style="display:flex;gap:8px;align-items:end;margin-top:12px">
-    <?= csrf_field() ?>
-    <div class="field" style="flex:1;margin:0"><label>โดเมนของหน่วยงาน</label>
-      <input class="input" type="text" name="domain" required maxlength="190" placeholder="เช่น rvc.ac.th"></div>
-    <button class="btn btn-primary" type="submit">เพิ่มโดเมน</button>
-  </form>
-</div>
+<p class="muted" style="margin:0 0 18px;font-size:13px">ลงทะเบียนอีเมลที่จะใช้ผูกกับบัญชี AI Pro ไว้ล่วงหน้า — ตอนแลกสิทธิ์จะเลือกได้เฉพาะอีเมลที่ "ใช้งาน" ในรายการนี้เท่านั้น</p>
 
 <div class="card" style="padding:20px;margin-bottom:22px;max-width:640px">
   <div style="font-weight:600;margin-bottom:12px">เพิ่มอีเมลใหม่<?php if ($domains): ?> <span class="faint" style="font-weight:400;font-size:12.5px">(เฉพาะ @<?= e(implode(', @', array_column($domains, 'domain'))) ?>)</span><?php endif; ?></div>

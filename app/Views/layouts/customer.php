@@ -11,10 +11,7 @@
       <div style="display:flex;gap:16px;margin-left:8px;font-size:14px">
         <a href="<?= e(url('account')) ?>" style="color:var(--muted)">สัญญาของฉัน</a>
         <a href="<?= e(url('account/ai')) ?>" style="color:var(--muted)">AI ของฉัน</a>
-        <a href="<?= e(url('account/emails')) ?>" style="color:var(--muted)">อีเมลที่ลงทะเบียน</a>
-        <?php if (!App\Core\Auth::isAssistant()): ?>
-          <a href="<?= e(url('account/team')) ?>" style="color:var(--muted)">ผู้ช่วยของฉัน</a>
-        <?php endif; ?>
+        <a href="<?= e(url('account/domains')) ?>" style="color:var(--muted)">การตั้งค่าการใช้งาน</a>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <button type="button" data-theme-toggle class="btn btn-ghost btn-sm" title="สลับธีม"><span data-theme-label></span></button>

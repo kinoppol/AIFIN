@@ -3,10 +3,9 @@
  *  @var string $q current search term
  *  @var int $total total assistants (before filtering) */
 ?>
-<div style="margin-bottom:22px">
-  <h1 style="margin:0;font-size:26px">ผู้ช่วยของฉัน</h1>
-  <p class="muted" style="margin:6px 0 0">เพิ่มผู้ใช้ที่ช่วยดูแลบัญชีของคุณ — ผู้ช่วยเข้าสู่ระบบด้วยอีเมลของตัวเอง และทำงานกับสัญญา/อีเมล/API Key ชุดเดียวกับคุณ (แต่จัดการรายชื่อผู้ช่วยไม่ได้)</p>
-</div>
+<?= (new App\Core\View())->partial('partials/settings_tabs', ['tab' => 'team']) ?>
+
+<p class="muted" style="margin:0 0 18px;font-size:13px">เพิ่มผู้ใช้ที่ช่วยดูแลบัญชีของคุณ — ผู้ช่วยเข้าสู่ระบบด้วยอีเมลของตัวเอง และทำงานกับสัญญา/อีเมล/API Key ชุดเดียวกับคุณ (แต่จัดการรายชื่อผู้ช่วยไม่ได้)</p>
 
 <div class="card" style="padding:20px;margin-bottom:22px;max-width:640px">
   <div style="font-weight:600;margin-bottom:12px">เพิ่มผู้ช่วยใหม่</div>
