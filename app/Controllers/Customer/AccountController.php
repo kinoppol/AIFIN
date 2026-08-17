@@ -127,6 +127,29 @@ class AccountController extends Controller
         $this->redirect('account/contract?id=' . $contractId);
     }
 
+    /** Set how many units may be redeemed per calendar month (0 = ไม่จำกัด). */
+    public function setRedeemLimit(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $contractId = (int) $this->input('contract_id');
+        $c = Contract::find($contractId);
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
+            $this->flash('danger', 'ไม่พบสัญญา');
+            $this->redirect('account');
+        }
+        try {
+            $limit = max(0, (int) $this->input('monthly_redeem_limit'));
+            (new ContractService())->setMonthlyRedeemLimit($contractId, $limit);
+            $this->flash('success', $limit > 0
+                ? "ตั้งค่าจำกัดการแลกไว้ที่ {$limit} หน่วยต่อเดือนแล้ว"
+                : 'ยกเลิกค่าจำกัดการแลกต่อเดือนแล้ว (ไม่จำกัด)');
+        } catch (\Throwable $e) {
+            $this->flash('danger', $e->getMessage());
+        }
+        $this->redirect('account/contract?id=' . $contractId);
+    }
+
     /** Manage the emails that may be bound to an AI Pro seat. */
     public function emails(): void
     {

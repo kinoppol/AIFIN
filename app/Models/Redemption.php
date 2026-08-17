@@ -41,6 +41,21 @@ class Redemption extends Model
         )->fetchAll();
     }
 
+    /**
+     * Units redeemed against a contract within one calendar month.
+     * $month is 'Y-m'; defaults to the current month.
+     */
+    public static function unitsInMonth(int $contractId, ?string $month = null): int
+    {
+        $month = $month ?: date('Y-m');
+        $stmt = static::db()->prepare(
+            "SELECT COALESCE(SUM(units), 0) FROM redemptions
+             WHERE contract_id = ? AND DATE_FORMAT(requested_at, '%Y-%m') = ?"
+        );
+        $stmt->execute([$contractId, $month]);
+        return (int) $stmt->fetchColumn();
+    }
+
     public static function forContract(int $contractId): array
     {
         $stmt = static::db()->prepare(

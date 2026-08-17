@@ -39,7 +39,11 @@ function asset(string $path): string
 {
     $r = router();
     $base = $r ? $r->base() : '';
-    return $base . '/assets/' . ltrim($path, '/');
+    $rel = ltrim($path, '/');
+    // Cache-bust on file mtime so browsers pick up CSS/JS changes immediately.
+    $file = dirname(__DIR__) . '/assets/' . $rel;
+    $ver = is_file($file) ? filemtime($file) : null;
+    return $base . '/assets/' . $rel . ($ver ? '?v=' . $ver : '');
 }
 
 /** HTML-escape. */
@@ -136,7 +140,26 @@ function contract_max_redeem(array $c): int
         return 0;
     }
     $cap = (int) config('app.max_redeem_units', 12);
-    return max(0, min((int) $c['units_remaining'], $cap));
+    $max = min((int) $c['units_remaining'], $cap);
+    $monthLeft = contract_month_left($c);
+    if ($monthLeft !== null) {
+        $max = min($max, $monthLeft);
+    }
+    return max(0, $max);
+}
+
+/**
+ * Units still redeemable this calendar month under the customer's own monthly
+ * cap (contracts.monthly_redeem_limit). Returns null when no cap is set.
+ */
+function contract_month_left(array $c): ?int
+{
+    $limit = (int) ($c['monthly_redeem_limit'] ?? 0);
+    if ($limit <= 0) {
+        return null;
+    }
+    $used = App\Models\Redemption::unitsInMonth((int) $c['id']);
+    return max(0, $limit - $used);
 }
 
 /**

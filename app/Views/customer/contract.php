@@ -15,6 +15,8 @@ $hasG       = (int) $c['gpu_total'] > 0;
 $maxRedeem  = contract_max_redeem($c);
 $expired    = contract_is_expired($c);
 $redeemCap  = (int) config('app.max_redeem_units', 12);
+$monthLimit = (int) ($c['monthly_redeem_limit'] ?? 0);
+$monthUsed  = App\Models\Redemption::unitsInMonth((int) $c['id']);
 ?>
 <a class="muted" style="font-size:13px" href="<?= e(url('account')) ?>">← กลับสัญญาของฉัน</a>
 
@@ -112,6 +114,29 @@ $redeemCap  = (int) config('app.max_redeem_units', 12);
   </div>
 
   <div class="stack" style="align-content:start">
+    <!-- customer-set monthly redeem cap -->
+    <?php if ($hasM): ?>
+    <div class="card card-pad">
+      <div style="font-weight:600;font-size:15px">จำกัดการแลกต่อเดือน</div>
+      <div class="muted" style="font-size:12px;margin-top:3px">ตั้งเพดานจำนวนหน่วยที่แลกได้ในแต่ละเดือน เพื่อกันไม่ให้หน่วยหมดเร็วเกินไป (0 = ไม่จำกัด)</div>
+      <div class="muted" style="font-size:12.5px;margin-top:10px">
+        เดือนนี้แลกไปแล้ว <b class="mono" style="color:var(--text)"><?= units($monthUsed) ?></b>
+        <?php if ($monthLimit > 0): ?>
+          จาก <b class="mono" style="color:var(--text)"><?= units($monthLimit) ?></b> · เหลือแลกได้ <b class="mono" style="color:var(--text)"><?= units(max(0, $monthLimit - $monthUsed)) ?></b>
+        <?php else: ?>
+          · ยังไม่ได้ตั้งค่าจำกัด
+        <?php endif; ?>
+      </div>
+      <form method="post" action="<?= e(url('account/redeem-limit')) ?>" style="display:flex;gap:8px;align-items:end;margin-top:12px">
+        <?= csrf_field() ?>
+        <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+        <div class="field" style="flex:1;margin:0"><label>หน่วยต่อเดือน (M)</label>
+          <input class="input" type="number" name="monthly_redeem_limit" min="0" max="<?= (int)$c['units_total'] ?>" value="<?= $monthLimit ?>"></div>
+        <button class="btn btn-primary" type="submit">บันทึก</button>
+      </form>
+    </div>
+    <?php endif; ?>
+
     <!-- redemptions & provisioned seats -->
     <div class="card card-pad">
       <div style="font-weight:600;font-size:15px">คำขอแลกสิทธิ์ & สถานะ</div>
@@ -220,7 +245,7 @@ $redeemCap  = (int) config('app.max_redeem_units', 12);
       <h3 style="margin:0;font-size:17px">แลกหน่วยเป็นสิทธิ์</h3>
       <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
-    <p class="muted" style="margin:0 0 14px;font-size:12.5px">คงเหลือ <?= (int)$c['units_remaining'] ?> M · แลกได้ครั้งละไม่เกิน <?= $redeemCap ?> หน่วย</p>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px">คงเหลือ <?= (int)$c['units_remaining'] ?> M · แลกได้ครั้งละไม่เกิน <?= $redeemCap ?> หน่วย<?php if ($monthLimit > 0): ?><br>จำกัดเดือนละ <?= $monthLimit ?> หน่วย · เดือนนี้แลกไปแล้ว <?= $monthUsed ?> หน่วย เหลือ <?= max(0, $monthLimit - $monthUsed) ?> หน่วย<?php endif; ?></p>
     <div class="field"><label>แพ็กเกจ AI ที่ต้องการ</label>
       <?php if ($plans): ?>
         <select class="input" name="plan_id" required>

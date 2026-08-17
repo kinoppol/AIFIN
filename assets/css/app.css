@@ -92,7 +92,10 @@ textarea.input{resize:vertical;min-height:72px}
   background:color-mix(in srgb,#060b14 60%,transparent);backdrop-filter:blur(5px);
   opacity:0;transition:opacity .16s ease;overflow:auto}
 dialog.modal-ov:not([open]){display:none}
-dialog.modal-ov[open]{animation:none}
+/* An open dialog is visible on its own — never depend on the .show class being
+   applied, or the box ends up transparent and unclickable. */
+dialog.modal-ov[open]{opacity:1;transition:none;animation:none}
+dialog.modal-ov[open] .modal-box{transform:none;animation:modalIn .18s cubic-bezier(.2,.8,.2,1)}
 dialog.modal-ov::backdrop{background:transparent;backdrop-filter:none}
 .modal-ov.show{opacity:1}
 .modal-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:16px;

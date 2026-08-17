@@ -161,6 +161,17 @@ class ContractService
             if ((int) $c['units_remaining'] < $units) {
                 throw new RuntimeException('หน่วยคงเหลือไม่พอสำหรับการแลก');
             }
+            // Customer-set monthly cap (0 = no cap).
+            $monthlyLimit = (int) ($c['monthly_redeem_limit'] ?? 0);
+            if ($monthlyLimit > 0) {
+                $usedThisMonth = Redemption::unitsInMonth($contractId);
+                $left = $monthlyLimit - $usedThisMonth;
+                if ($units > $left) {
+                    throw new RuntimeException(
+                        "เกินค่าจำกัดการแลกต่อเดือนที่ตั้งไว้ ({$monthlyLimit} หน่วย/เดือน) — เดือนนี้แลกไปแล้ว {$usedThisMonth} หน่วย เหลือแลกได้อีก " . max(0, $left) . ' หน่วย'
+                    );
+                }
+            }
             // The email must have been registered by the contract owner beforehand.
             $ownerId = (int) ($c['user_id'] ?? 0);
             if ($ownerId <= 0 || !CustomerEmail::isRegistered($ownerId, $email)) {
@@ -206,6 +217,24 @@ class ContractService
             $db->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Customer-set cap on how many units may be redeemed per calendar month
+     * (0 = unlimited). Guards a wallet from being drained too quickly.
+     */
+    public function setMonthlyRedeemLimit(int $contractId, int $limit): void
+    {
+        $c = Contract::find($contractId);
+        if (!$c) {
+            throw new RuntimeException('ไม่พบสัญญา');
+        }
+        if ($limit < 0) {
+            throw new RuntimeException('ค่าจำกัดต้องไม่ติดลบ');
+        }
+        // A cap tighter than app.max_redeem_units is allowed — it just limits
+        // each request further.
+        Contract::update($contractId, ['monthly_redeem_limit' => $limit]);
     }
 
     /** Advance a redemption's provisioning status (admin queue actions). */

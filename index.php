@@ -46,6 +46,7 @@ $router->get('account/buy',      [AccountController::class, 'buyForm']);
 $router->post('account/buy',     [AccountController::class, 'buy']);
 $router->get('account/contract', [AccountController::class, 'contract']);
 $router->post('account/redeem',  [AccountController::class, 'redeem']);
+$router->post('account/redeem-limit', [AccountController::class, 'setRedeemLimit']);
 $router->post('account/extend',  [AccountController::class, 'requestExtension']);
 $router->post('account/buy-gpu', [AccountController::class, 'buyGpu']);
 $router->post('account/apikey',  [AccountController::class, 'requestApiKey']);

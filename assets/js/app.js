@@ -112,7 +112,7 @@ document.addEventListener('input', function (e) {
     if (cancelBtn) cancelBtn.textContent = opts.cancelText || 'ยกเลิก';
 
     document.body.appendChild(ov);
-    ov.showModal();
+    try { ov.showModal(); } catch (err) { ov.setAttribute('open', ''); }
     requestAnimationFrame(function () { ov.classList.add('show'); });
 
     return new Promise(function (resolve) {
@@ -150,7 +150,7 @@ document.addEventListener('input', function (e) {
     box.innerHTML = html + '<div class="modal-actions"><button type="button" class="btn btn-primary" data-close>ปิด</button></div>';
     ov.appendChild(box);
     document.body.appendChild(ov);
-    ov.showModal();
+    try { ov.showModal(); } catch (err) { ov.setAttribute('open', ''); }
     requestAnimationFrame(function () { ov.classList.add('show'); });
     function close() {
       ov.classList.remove('show');
