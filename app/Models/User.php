@@ -14,14 +14,41 @@ class User extends Model
         return $stmt->fetch() ?: null;
     }
 
-    public static function create(string $email, string $password, string $name, string $role = 'customer'): int
+    public static function create(string $email, string $password, string $name, string $role = 'customer', ?int $parentUserId = null): int
     {
         return static::insert([
-            'email'         => $email,
-            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            'name'          => $name,
-            'role'          => $role,
+            'email'          => $email,
+            'password_hash'  => password_hash($password, PASSWORD_DEFAULT),
+            'name'           => $name,
+            'role'           => $role,
+            'parent_user_id' => $parentUserId,
         ]);
+    }
+
+    /** Assistant logins working under a customer account. @return array<int,array> */
+    public static function assistantsOf(int $ownerId, string $search = ''): array
+    {
+        $sql = "SELECT * FROM users WHERE parent_user_id = ?";
+        $params = [$ownerId];
+        if ($search !== '') {
+            $sql .= " AND (email LIKE ? OR name LIKE ?)";
+            $params[] = '%' . $search . '%';
+            $params[] = '%' . $search . '%';
+        }
+        $stmt = static::db()->prepare($sql . " ORDER BY status ASC, name ASC");
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public static function setPassword(int $id, string $password): void
+    {
+        static::update($id, ['password_hash' => password_hash($password, PASSWORD_DEFAULT)]);
+    }
+
+    public static function delete(int $id): void
+    {
+        $stmt = static::db()->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$id]);
     }
 
     /** Create if missing, otherwise update name/password/role. Used by installer. */

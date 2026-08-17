@@ -19,6 +19,7 @@ $GLOBALS['__router'] = $router;
 use App\Controllers\LandingController;
 use App\Controllers\AuthController;
 use App\Controllers\Customer\AccountController;
+use App\Controllers\Customer\TeamController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\ContractController;
 use App\Controllers\Admin\WalletController;
@@ -53,7 +54,14 @@ $router->get('account/receipt',  [AccountController::class, 'receipt']);
 $router->get('account/proof',    [AccountController::class, 'proof']);
 $router->get('account/emails',   [AccountController::class, 'emails']);
 $router->post('account/emails',  [AccountController::class, 'addEmail']);
+$router->post('account/emails/update', [AccountController::class, 'updateEmail']);
+$router->post('account/emails/status', [AccountController::class, 'toggleEmailStatus']);
 $router->post('account/emails/delete', [AccountController::class, 'deleteEmail']);
+$router->get('account/team',     [TeamController::class, 'index']);
+$router->post('account/team',    [TeamController::class, 'store']);
+$router->post('account/team/update', [TeamController::class, 'update']);
+$router->post('account/team/status', [TeamController::class, 'toggleStatus']);
+$router->post('account/team/delete', [TeamController::class, 'destroy']);
 
 // Admin area
 $router->get('admin',                    [DashboardController::class, 'index']);

@@ -11,23 +11,44 @@ class CustomerEmail extends Model
 {
     protected static string $table = 'customer_emails';
 
-    /** @return array<int,array> */
-    public static function forUser(int $userId): array
+    /**
+     * All of a customer's emails, optionally filtered by a free-text search
+     * over the address and its label.
+     *
+     * @return array<int,array>
+     */
+    public static function forUser(int $userId, string $search = ''): array
+    {
+        $sql = "SELECT * FROM customer_emails WHERE user_id = ?";
+        $params = [$userId];
+        if ($search !== '') {
+            $sql .= " AND (email LIKE ? OR label LIKE ?)";
+            $like = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        $stmt = static::db()->prepare($sql . " ORDER BY status ASC, email ASC");
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /** Selectable (non-suspended) emails of a customer. @return array<int,array> */
+    public static function activeForUser(int $userId): array
     {
         $stmt = static::db()->prepare(
-            "SELECT * FROM customer_emails WHERE user_id = ? ORDER BY email ASC"
+            "SELECT * FROM customer_emails WHERE user_id = ? AND status = 'active' ORDER BY email ASC"
         );
         $stmt->execute([$userId]);
         return $stmt->fetchAll();
     }
 
-    /** Emails registered by the owner of a contract. @return array<int,array> */
+    /** Selectable emails of the owner of a contract. @return array<int,array> */
     public static function forContract(int $contractId): array
     {
         $stmt = static::db()->prepare(
             "SELECT ce.* FROM customer_emails ce
              JOIN contracts c ON c.user_id = ce.user_id
-             WHERE c.id = ? ORDER BY ce.email ASC"
+             WHERE c.id = ? AND ce.status = 'active' ORDER BY ce.email ASC"
         );
         $stmt->execute([$contractId]);
         return $stmt->fetchAll();
@@ -42,9 +63,11 @@ class CustomerEmail extends Model
         return $stmt->fetch() ?: null;
     }
 
+    /** Registered *and* not suspended — the condition for redeeming. */
     public static function isRegistered(int $userId, string $email): bool
     {
-        return static::findForUser($userId, $email) !== null;
+        $row = static::findForUser($userId, $email);
+        return $row !== null && ($row['status'] ?? 'active') === 'active';
     }
 
     /** How many seats already use this email (blocks deletion). */

@@ -19,7 +19,7 @@ class AccountController extends Controller
     public function index(): void
     {
         $this->requireAuth();
-        $userId = Auth::id();
+        $userId = Auth::ownerId();
         $this->render('customer/dashboard', [
             'title'     => 'สัญญาของฉัน',
             'contracts' => Contract::forUser($userId),
@@ -30,7 +30,7 @@ class AccountController extends Controller
     public function ai(): void
     {
         $this->requireAuth();
-        $userId = Auth::id();
+        $userId = Auth::ownerId();
         $this->render('customer/ai', [
             'title'   => 'AI ของฉัน',
             'seats'   => Redemption::forUser($userId),
@@ -45,7 +45,7 @@ class AccountController extends Controller
             'title'       => 'ซื้อหน่วย AI Pro / GPU',
             'packages'    => Package::sellableKind('ai'),
             'gpuPackages' => Package::sellableKind('gpu'),
-            'contracts'   => Contract::forUser(Auth::id()),
+            'contracts'   => Contract::forUser(Auth::ownerId()),
         ], 'layouts/customer');
     }
 
@@ -53,7 +53,7 @@ class AccountController extends Controller
     {
         $this->requireAuth();
         Csrf::verify();
-        $user = Auth::user();
+        $owner = ['id' => Auth::ownerId(), 'name' => Auth::ownerName()];
         $packageId = (int) $this->input('package_id');
         $pkg = Package::find($packageId);
         if (!$pkg) {
@@ -63,8 +63,8 @@ class AccountController extends Controller
         try {
             $svc = new ContractService();
             $id = $svc->purchase(
-                $user['id'],
-                $user['name'],
+                $owner['id'],
+                $owner['name'],
                 (int) $pkg['units'],
                 (int) $pkg['sale_price'],
                 $packageId,
@@ -83,7 +83,7 @@ class AccountController extends Controller
     {
         $this->requireAuth();
         Csrf::verify();
-        $user = Auth::user();
+        $owner = ['id' => Auth::ownerId(), 'name' => Auth::ownerName()];
         $packageId = (int) $this->input('package_id');
         $pkg = Package::find($packageId);
         if (!$pkg || $pkg['kind'] !== 'gpu') {
@@ -92,8 +92,8 @@ class AccountController extends Controller
         }
         try {
             $id = (new ContractService())->purchaseGpu(
-                $user['id'],
-                $user['name'],
+                $owner['id'],
+                $owner['name'],
                 (int) $pkg['units'],
                 (int) $pkg['sale_price'],
                 $packageId,
@@ -113,7 +113,7 @@ class AccountController extends Controller
         Csrf::verify();
         $contractId = (int) $this->input('contract_id');
         $c = Contract::find($contractId);
-        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
             $this->flash('danger', 'ไม่พบสัญญา');
             $this->redirect('account');
         }
@@ -130,8 +130,9 @@ class AccountController extends Controller
     public function emails(): void
     {
         $this->requireAuth();
-        $userId = Auth::id();
-        $emails = CustomerEmail::forUser($userId);
+        $userId = Auth::ownerId();
+        $q = trim((string) $this->input('q'));
+        $emails = CustomerEmail::forUser($userId, $q);
         foreach ($emails as &$row) {
             $row['used'] = CustomerEmail::usageCount($userId, $row['email']);
         }
@@ -139,6 +140,8 @@ class AccountController extends Controller
         $this->render('customer/emails', [
             'title'  => 'อีเมลที่ลงทะเบียน',
             'emails' => $emails,
+            'q'      => $q,
+            'total'  => CustomerEmail::count('user_id = ?', [$userId]),
         ], 'layouts/customer');
     }
 
@@ -146,7 +149,7 @@ class AccountController extends Controller
     {
         $this->requireAuth();
         Csrf::verify();
-        $userId = Auth::id();
+        $userId = Auth::ownerId();
         $email = strtolower(trim((string) $this->input('email')));
         $label = trim((string) $this->input('label'));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -164,11 +167,66 @@ class AccountController extends Controller
         $this->redirect($this->backTo('account/emails'));
     }
 
+    /** Edit an email's address/label. The address is locked once seats use it. */
+    public function updateEmail(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::ownerId();
+        $id = (int) $this->input('id');
+        $row = CustomerEmail::find($id);
+        if (!$row || (int) $row['user_id'] !== $userId) {
+            $this->flash('danger', 'ไม่พบอีเมล');
+            $this->redirect('account/emails');
+        }
+        $email = strtolower(trim((string) $this->input('email')));
+        $label = trim((string) $this->input('label'));
+        $used  = CustomerEmail::usageCount($userId, $row['email']);
+        $data  = ['label' => $label !== '' ? $label : null];
+
+        if ($email !== '' && $email !== $row['email']) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->flash('danger', 'อีเมลไม่ถูกต้อง');
+                $this->redirect('account/emails');
+            }
+            if ($used > 0) {
+                $this->flash('danger', 'อีเมลนี้ถูกใช้แลกสิทธิ์แล้ว แก้ไขที่อยู่อีเมลไม่ได้ (แก้ไขชื่อเรียกได้)');
+                $this->redirect('account/emails');
+            }
+            if (CustomerEmail::findForUser($userId, $email)) {
+                $this->flash('danger', 'อีเมลนี้ลงทะเบียนไว้แล้ว');
+                $this->redirect('account/emails');
+            }
+            $data['email'] = $email;
+        }
+        CustomerEmail::update($id, $data);
+        $this->flash('success', 'บันทึกการแก้ไขแล้ว');
+        $this->redirect('account/emails');
+    }
+
+    /** Suspend / resume an email (suspended addresses can't be redeemed against). */
+    public function toggleEmailStatus(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::ownerId();
+        $id = (int) $this->input('id');
+        $row = CustomerEmail::find($id);
+        if (!$row || (int) $row['user_id'] !== $userId) {
+            $this->flash('danger', 'ไม่พบอีเมล');
+            $this->redirect('account/emails');
+        }
+        $suspend = ($row['status'] ?? 'active') === 'active';
+        CustomerEmail::update($id, ['status' => $suspend ? 'suspended' : 'active']);
+        $this->flash('success', $suspend ? 'ระงับการใช้งานอีเมลแล้ว' : 'เปิดใช้งานอีเมลอีกครั้งแล้ว');
+        $this->redirect('account/emails');
+    }
+
     public function deleteEmail(): void
     {
         $this->requireAuth();
         Csrf::verify();
-        $userId = Auth::id();
+        $userId = Auth::ownerId();
         $id = (int) $this->input('id');
         $row = CustomerEmail::find($id);
         if (!$row || (int) $row['user_id'] !== $userId) {
@@ -194,7 +252,7 @@ class AccountController extends Controller
         $this->requireAuth();
         $id = (int) $this->input('id');
         $c = Contract::find($id);
-        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
             $this->flash('danger', 'ไม่พบสัญญา');
             $this->redirect('account');
         }
@@ -207,7 +265,7 @@ class AccountController extends Controller
             'exts'    => ExtensionRequest::forContract($id),
             'apikeys' => ApiKey::forContract($id),
             'payment' => Payment::latestForContract($id),
-            'emails'  => CustomerEmail::forUser(Auth::id()),
+            'emails'  => CustomerEmail::activeForUser(Auth::ownerId()),
             'maxExt'  => (int) config('app.max_extension_months', 6),
         ], 'layouts/customer');
     }
@@ -218,7 +276,7 @@ class AccountController extends Controller
         Csrf::verify();
         $contractId = (int) $this->input('contract_id');
         $c = Contract::find($contractId);
-        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
             $this->flash('danger', 'ไม่พบสัญญา');
             $this->redirect('account');
         }
@@ -237,7 +295,7 @@ class AccountController extends Controller
         Csrf::verify();
         $contractId = (int) $this->input('contract_id');
         $c = Contract::find($contractId);
-        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
             $this->flash('danger', 'ไม่พบสัญญา');
             $this->redirect('account');
         }
@@ -269,7 +327,7 @@ class AccountController extends Controller
         $this->requireAuth();
         $id = (int) $this->input('id');
         $c = Contract::find($id);
-        if (!$c || ((int) $c['user_id'] !== Auth::id() && !Auth::isAdmin())) {
+        if (!$c || ((int) $c['user_id'] !== Auth::ownerId() && !Auth::isAdmin())) {
             http_response_code(404);
             exit('ไม่พบสัญญา');
         }
@@ -290,7 +348,7 @@ class AccountController extends Controller
             exit('ไม่พบรายการ');
         }
         $c = Contract::find((int) $l['contract_id']);
-        if (!$c || ((int) $c['user_id'] !== Auth::id() && !Auth::isAdmin())) {
+        if (!$c || ((int) $c['user_id'] !== Auth::ownerId() && !Auth::isAdmin())) {
             http_response_code(404);
             exit('ไม่พบรายการ');
         }
@@ -312,7 +370,7 @@ class AccountController extends Controller
             exit('ไม่พบไฟล์');
         }
         $c = Contract::find((int) $p['contract_id']);
-        if (!$c || ((int) $c['user_id'] !== Auth::id() && !Auth::isAdmin())) {
+        if (!$c || ((int) $c['user_id'] !== Auth::ownerId() && !Auth::isAdmin())) {
             http_response_code(403);
             exit('Forbidden');
         }
@@ -360,7 +418,7 @@ class AccountController extends Controller
         Csrf::verify();
         $contractId = (int) $this->input('contract_id');
         $c = Contract::find($contractId);
-        if (!$c || (int) $c['user_id'] !== Auth::id()) {
+        if (!$c || (int) $c['user_id'] !== Auth::ownerId()) {
             $this->flash('danger', 'ไม่พบสัญญา');
             $this->redirect('account');
         }
