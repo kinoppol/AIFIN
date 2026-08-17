@@ -127,13 +127,9 @@ $monthUsed  = App\Models\Redemption::unitsInMonth((int) $c['id']);
           · ยังไม่ได้ตั้งค่าจำกัด
         <?php endif; ?>
       </div>
-      <form method="post" action="<?= e(url('account/redeem-limit')) ?>" style="display:flex;gap:8px;align-items:end;margin-top:12px">
-        <?= csrf_field() ?>
-        <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
-        <div class="field" style="flex:1;margin:0"><label>หน่วยต่อเดือน (M)</label>
-          <input class="input" type="number" name="monthly_redeem_limit" min="0" max="<?= (int)$c['units_total'] ?>" value="<?= $monthLimit ?>"></div>
-        <button class="btn btn-primary" type="submit">บันทึก</button>
-      </form>
+      <button type="button" class="btn btn-sm" style="margin-top:12px" onclick="document.getElementById('limit-modal').showModal()">
+        <?= icon('calendar-plus', 14) ?><?= $monthLimit > 0 ? 'แก้ไขค่าจำกัดการแลก' : 'ตั้งค่าจำกัดการแลก' ?>
+      </button>
     </div>
     <?php endif; ?>
 
@@ -215,6 +211,29 @@ $monthUsed  = App\Models\Redemption::unitsInMonth((int) $c['id']);
 
   </div>
 </div>
+<?php if ($hasM): ?>
+<dialog id="limit-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('account/redeem-limit')) ?>" style="padding:22px">
+    <?= csrf_field() ?>
+    <input type="hidden" name="contract_id" value="<?= (int)$c['id'] ?>">
+    <div class="modal-head" style="margin-bottom:4px">
+      <h3 style="margin:0;font-size:17px">จำกัดการแลกต่อเดือน</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px">
+      ตั้งเพดานจำนวนหน่วยที่แลกได้ในแต่ละเดือน เพื่อกันไม่ให้หน่วยหมดเร็วเกินไป<br>
+      เดือนนี้แลกไปแล้ว <?= $monthUsed ?> หน่วย<?php if ($monthLimit > 0): ?> จาก <?= $monthLimit ?> หน่วย<?php endif; ?>
+    </p>
+    <div class="field"><label>หน่วยต่อเดือน (M) — ใส่ 0 หากไม่จำกัด</label>
+      <input class="input" type="number" name="monthly_redeem_limit" min="0" max="<?= (int)$c['units_total'] ?>" value="<?= $monthLimit ?>" required></div>
+    <div class="faint" style="font-size:11.5px;margin-top:6px">* นับตามเดือนปฏิทินจากคำขอแลกทั้งหมดของสัญญานี้ · เพดานต่อครั้งยังคงไม่เกิน <?= $redeemCap ?> หน่วย</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button class="btn btn-primary" type="submit">บันทึกค่าจำกัด</button>
+    </div>
+  </form>
+</dialog>
+<?php endif; ?>
 <?php if ($canExtend): ?>
 <dialog id="ext-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:420px;width:92%;padding:0;color:var(--text)">
   <form method="post" action="<?= e(url('account/extend')) ?>" style="padding:22px"
