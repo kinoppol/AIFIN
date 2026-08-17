@@ -277,7 +277,7 @@ class AccountController extends Controller
     /** Settings tab: which domains may be registered (empty list = ทุกโดเมน). */
     public function domains(): void
     {
-        $this->requireAuth();
+        $this->requireDomainOwner();
         $userId = Auth::ownerId();
         $this->render('customer/domains', [
             'title'      => 'โดเมนที่อนุญาต',
@@ -288,7 +288,7 @@ class AccountController extends Controller
 
     public function addDomain(): void
     {
-        $this->requireAuth();
+        $this->requireDomainOwner();
         Csrf::verify();
         $userId = Auth::ownerId();
         $domain = CustomerEmailDomain::normalize((string) $this->input('domain'));
@@ -305,7 +305,7 @@ class AccountController extends Controller
 
     public function deleteDomain(): void
     {
-        $this->requireAuth();
+        $this->requireDomainOwner();
         Csrf::verify();
         $userId = Auth::ownerId();
         $id = (int) $this->input('id');
@@ -317,6 +317,16 @@ class AccountController extends Controller
             $this->flash('success', 'ลบโดเมนออกจากรายการแล้ว');
         }
         $this->redirect('account/domains');
+    }
+
+    /** The allowed-domain policy is the account owner's call, not an assistant's. */
+    private function requireDomainOwner(): void
+    {
+        $this->requireAuth();
+        if (Auth::isAssistant()) {
+            $this->flash('danger', 'เฉพาะเจ้าของบัญชีเท่านั้นที่จัดการโดเมนที่อนุญาตได้');
+            $this->redirect('account/emails');
+        }
     }
 
     /** Message listing the domains an address must belong to. */

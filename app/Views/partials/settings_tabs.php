@@ -3,11 +3,13 @@
  * Sub-navigation for the customer "การตั้งค่าการใช้งาน" section.
  * @var string $tab one of: domains | emails | team
  */
+// Assistants may work with the emails, but team and domain policy belong to
+// the account owner.
 $items = [['emails', 'อีเมลที่ลงทะเบียน', 'account/emails']];
 if (!App\Core\Auth::isAssistant()) {
     $items[] = ['team', 'ผู้ช่วยของฉัน', 'account/team'];
+    $items[] = ['domains', 'โดเมนที่อนุญาต', 'account/domains'];
 }
-$items[] = ['domains', 'โดเมนที่อนุญาต', 'account/domains'];
 ?>
 <div style="margin-bottom:18px">
   <h1 style="margin:0;font-size:26px">การตั้งค่าการใช้งาน</h1>
