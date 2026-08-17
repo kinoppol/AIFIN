@@ -246,19 +246,8 @@ class ContractService
                 throw new RuntimeException('รูปแบบวันที่ไม่ถูกต้อง');
             }
         }
-        if (strtotime($baseEnd) <= strtotime($start)) {
-            throw new RuntimeException('วันสิ้นสุด (เดิม) ต้องอยู่หลังวันเริ่มสัญญา');
-        }
-        if (strtotime($end) < strtotime($baseEnd)) {
-            throw new RuntimeException('วันสิ้นสุดปัจจุบันต้องไม่ก่อนวันสิ้นสุดเดิม');
-        }
-        // The gap between base end and current end is the granted extension.
-        $maxEnd = date('Y-m-d', strtotime("{$baseEnd} +" . (int) $c['extension_months_used'] . ' months'));
-        if (strtotime($end) > strtotime($maxEnd)) {
-            throw new RuntimeException(
-                'วันสิ้นสุดปัจจุบันเกินโควตาการขยายที่อนุมัติไว้ (' . (int) $c['extension_months_used'] . ' เดือน)'
-            );
-        }
+        // Admins may set the dates freely (corrections, back-dating, manual
+        // extensions) — only the format is checked above.
         $price = isset($in['price_per_m']) ? max(0, (int) $in['price_per_m']) : (int) $c['price_per_m'];
         $total = isset($in['total_amount']) ? max(0, (int) $in['total_amount']) : (int) $c['total_amount'];
         $limit = isset($in['monthly_redeem_limit']) ? max(0, (int) $in['monthly_redeem_limit']) : (int) ($c['monthly_redeem_limit'] ?? 0);

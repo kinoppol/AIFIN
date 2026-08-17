@@ -206,7 +206,7 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
       <div class="field"><label>วันสิ้นสุดปัจจุบัน</label><input class="input" type="date" name="end_date" required value="<?= e($c['end_date']) ?>"></div>
       <div class="field"><label>จำกัดการแลก (M/เดือน, 0 = ไม่จำกัด)</label><input class="input" type="number" name="monthly_redeem_limit" min="0" value="<?= (int)($c['monthly_redeem_limit'] ?? 0) ?>"></div>
     </div>
-    <div class="faint" style="font-size:11.5px;margin-top:6px">* วันสิ้นสุดปัจจุบันต้องไม่เกินวันสิ้นสุดเดิม + โควตาที่อนุมัติแล้ว (<?= $usedMonths ?> เดือน) · สถานะสัญญาจะคำนวณใหม่หลังบันทึก</div>
+    <div class="faint" style="font-size:11.5px;margin-top:6px">* ผู้ดูแลกำหนดวันที่ได้อิสระ (ใช้แก้ไขย้อนหลัง/ขยายด้วยตนเอง) · สถานะสัญญาจะคำนวณใหม่จากวันสิ้นสุดปัจจุบันหลังบันทึก · โควตาการขยายที่อนุมัติแล้ว <?= $usedMonths ?>/<?= $maxExt ?> เดือน ไม่เปลี่ยนตามการแก้ไขนี้</div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
       <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
       <button class="btn btn-primary" type="submit">บันทึก</button>
