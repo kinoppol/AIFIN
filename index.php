@@ -70,6 +70,7 @@ $router->get('admin',                    [DashboardController::class, 'index']);
 $router->get('admin/contracts',          [ContractController::class, 'index']);
 $router->post('admin/contracts',         [ContractController::class, 'store']);
 $router->get('admin/contracts/show',     [ContractController::class, 'show']);
+$router->post('admin/contracts/update',  [ContractController::class, 'update']);
 $router->post('admin/contracts/redeem',  [ContractController::class, 'redeem']);
 $router->get('admin/wallets',            [WalletController::class, 'index']);
 $router->get('admin/redeem',             [RedeemController::class, 'index']);

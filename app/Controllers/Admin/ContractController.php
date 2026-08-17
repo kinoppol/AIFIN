@@ -99,6 +99,29 @@ class ContractController extends Controller
         }
     }
 
+    /** Edit a contract's details (balances stay owned by the ledger). */
+    public function update(): void
+    {
+        $this->requireAdmin();
+        Csrf::verify();
+        $id = (int) $this->input('id');
+        try {
+            (new ContractService())->updateContract($id, [
+                'customer_name'        => (string) $this->input('customer_name'),
+                'price_per_m'          => (int) $this->input('price_per_m'),
+                'total_amount'         => (int) $this->input('total_amount'),
+                'start_date'           => (string) $this->input('start_date'),
+                'base_end_date'        => (string) $this->input('base_end_date'),
+                'end_date'             => (string) $this->input('end_date'),
+                'monthly_redeem_limit' => (int) $this->input('monthly_redeem_limit'),
+            ]);
+            $this->flash('success', 'บันทึกรายละเอียดสัญญาแล้ว');
+        } catch (\Throwable $e) {
+            $this->flash('danger', $e->getMessage());
+        }
+        $this->redirect('admin/contracts/show?id=' . $id);
+    }
+
     public function redeem(): void
     {
         $this->requireAdmin();

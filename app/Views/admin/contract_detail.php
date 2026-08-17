@@ -4,7 +4,10 @@ $usedMonths = (int) $c['extension_months_used'];
 $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
 ?>
 <div class="page-cols">
-  <a href="<?= e(url('admin/contracts')) ?>" class="muted" style="font-size:13px">← กลับรายการสัญญา</a>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <a href="<?= e(url('admin/contracts')) ?>" class="muted" style="font-size:13px">← กลับรายการสัญญา</a>
+    <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('contract-edit-modal').showModal()">แก้ไขรายละเอียดสัญญา</button>
+  </div>
 
   <div class="card-navy" style="padding:26px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center">
     <div>
@@ -181,4 +184,33 @@ $liabilityDays = (int) $c['units_remaining'] * (int) $c['unit_days'];
     </div>
   </div>
 </div>
+<dialog id="contract-edit-modal" data-persistent class="card" style="border:1px solid var(--border);max-width:520px;width:94%;padding:0;color:var(--text)">
+  <form method="post" action="<?= e(url('admin/contracts/update')) ?>" style="padding:22px">
+    <?= csrf_field() ?>
+    <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+    <div class="modal-head" style="margin-bottom:4px">
+      <h3 style="margin:0;font-size:17px">แก้ไขรายละเอียดสัญญา</h3>
+      <button type="button" class="modal-x" data-dialog-close aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;font-size:12.5px"><?= e($c['contract_no']) ?> · จำนวนหน่วยแก้ที่นี่ไม่ได้ (ควบคุมโดยบัญชีแยกประเภท) — ใช้การซื้อ/แลกหน่วยแทน</p>
+    <div class="field"><label>ชื่อลูกค้า</label><input class="input" type="text" name="customer_name" required maxlength="190" value="<?= e($c['customer_name']) ?>"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>ราคาต่อหน่วย (บาท/M)</label><input class="input" type="number" name="price_per_m" min="0" value="<?= (int)$c['price_per_m'] ?>"></div>
+      <div class="field"><label>ยอดสัญญา (ก่อน VAT)</label><input class="input" type="number" name="total_amount" min="0" value="<?= (int)$c['total_amount'] ?>"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>วันเริ่มสัญญา</label><input class="input" type="date" name="start_date" required value="<?= e($c['start_date']) ?>"></div>
+      <div class="field"><label>วันสิ้นสุด (เดิม)</label><input class="input" type="date" name="base_end_date" required value="<?= e($c['base_end_date']) ?>"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>วันสิ้นสุดปัจจุบัน</label><input class="input" type="date" name="end_date" required value="<?= e($c['end_date']) ?>"></div>
+      <div class="field"><label>จำกัดการแลก (M/เดือน, 0 = ไม่จำกัด)</label><input class="input" type="number" name="monthly_redeem_limit" min="0" value="<?= (int)($c['monthly_redeem_limit'] ?? 0) ?>"></div>
+    </div>
+    <div class="faint" style="font-size:11.5px;margin-top:6px">* วันสิ้นสุดปัจจุบันต้องไม่เกินวันสิ้นสุดเดิม + โควตาที่อนุมัติแล้ว (<?= $usedMonths ?> เดือน) · สถานะสัญญาจะคำนวณใหม่หลังบันทึก</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn btn-ghost" data-dialog-close>ยกเลิก</button>
+      <button class="btn btn-primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
 <style>@media(max-width:900px){.detail-row{grid-template-columns:1fr!important}}</style>

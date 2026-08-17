@@ -220,6 +220,62 @@ class ContractService
     }
 
     /**
+     * Admin edit of a contract's descriptive fields.
+     *
+     * Unit balances are *not* editable here — they are owned by the ledger.
+     * Dates are validated against each other and the granted extension months,
+     * and the derived status is refreshed afterwards.
+     *
+     * @param array{customer_name?:string,price_per_m?:int,start_date?:string,base_end_date?:string,end_date?:string,total_amount?:int,monthly_redeem_limit?:int} $in
+     */
+    public function updateContract(int $contractId, array $in): void
+    {
+        $c = Contract::find($contractId);
+        if (!$c) {
+            throw new RuntimeException('ไม่พบสัญญา');
+        }
+        $name = trim((string) ($in['customer_name'] ?? $c['customer_name']));
+        if ($name === '') {
+            throw new RuntimeException('กรุณากรอกชื่อลูกค้า');
+        }
+        $start   = ($in['start_date']    ?? '') ?: $c['start_date'];
+        $baseEnd = ($in['base_end_date'] ?? '') ?: $c['base_end_date'];
+        $end     = ($in['end_date']      ?? '') ?: $c['end_date'];
+        foreach ([$start, $baseEnd, $end] as $d) {
+            if (!strtotime((string) $d)) {
+                throw new RuntimeException('รูปแบบวันที่ไม่ถูกต้อง');
+            }
+        }
+        if (strtotime($baseEnd) <= strtotime($start)) {
+            throw new RuntimeException('วันสิ้นสุด (เดิม) ต้องอยู่หลังวันเริ่มสัญญา');
+        }
+        if (strtotime($end) < strtotime($baseEnd)) {
+            throw new RuntimeException('วันสิ้นสุดปัจจุบันต้องไม่ก่อนวันสิ้นสุดเดิม');
+        }
+        // The gap between base end and current end is the granted extension.
+        $maxEnd = date('Y-m-d', strtotime("{$baseEnd} +" . (int) $c['extension_months_used'] . ' months'));
+        if (strtotime($end) > strtotime($maxEnd)) {
+            throw new RuntimeException(
+                'วันสิ้นสุดปัจจุบันเกินโควตาการขยายที่อนุมัติไว้ (' . (int) $c['extension_months_used'] . ' เดือน)'
+            );
+        }
+        $price = isset($in['price_per_m']) ? max(0, (int) $in['price_per_m']) : (int) $c['price_per_m'];
+        $total = isset($in['total_amount']) ? max(0, (int) $in['total_amount']) : (int) $c['total_amount'];
+        $limit = isset($in['monthly_redeem_limit']) ? max(0, (int) $in['monthly_redeem_limit']) : (int) ($c['monthly_redeem_limit'] ?? 0);
+
+        Contract::update($contractId, [
+            'customer_name'        => $name,
+            'price_per_m'          => $price,
+            'total_amount'         => $total,
+            'start_date'           => date('Y-m-d', strtotime($start)),
+            'base_end_date'        => date('Y-m-d', strtotime($baseEnd)),
+            'end_date'             => date('Y-m-d', strtotime($end)),
+            'monthly_redeem_limit' => $limit,
+        ]);
+        Contract::refreshStatus($contractId);
+    }
+
+    /**
      * Customer-set cap on how many units may be redeemed per calendar month
      * (0 = unlimited). Guards a wallet from being drained too quickly.
      */
