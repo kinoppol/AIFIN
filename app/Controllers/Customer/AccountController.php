@@ -8,6 +8,7 @@ use App\Models\AiPlan;
 use App\Models\ApiKey;
 use App\Models\Contract;
 use App\Models\CustomerEmail;
+use App\Models\CustomerEmailDomain;
 use App\Models\ExtensionRequest;
 use App\Models\Package;
 use App\Models\Payment;
@@ -164,10 +165,11 @@ class AccountController extends Controller
         }
         unset($row);
         $this->render('customer/emails', [
-            'title'  => 'อีเมลที่ลงทะเบียน',
-            'emails' => $emails,
-            'q'      => $q,
-            'total'  => CustomerEmail::count('user_id = ?', [$userId]),
+            'title'   => 'อีเมลที่ลงทะเบียน',
+            'emails'  => $emails,
+            'q'       => $q,
+            'total'   => CustomerEmail::count('user_id = ?', [$userId]),
+            'domains' => CustomerEmailDomain::forUser($userId),
         ], 'layouts/customer');
     }
 
@@ -180,6 +182,8 @@ class AccountController extends Controller
         $label = trim((string) $this->input('label'));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->flash('danger', 'อีเมลไม่ถูกต้อง');
+        } elseif (!CustomerEmailDomain::allows($userId, $email)) {
+            $this->flash('danger', $this->domainError($userId));
         } elseif (CustomerEmail::isRegistered($userId, $email)) {
             $this->flash('danger', 'อีเมลนี้ลงทะเบียนไว้แล้ว');
         } else {
@@ -213,6 +217,10 @@ class AccountController extends Controller
         if ($email !== '' && $email !== $row['email']) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->flash('danger', 'อีเมลไม่ถูกต้อง');
+                $this->redirect('account/emails');
+            }
+            if (!CustomerEmailDomain::allows($userId, $email)) {
+                $this->flash('danger', $this->domainError($userId));
                 $this->redirect('account/emails');
             }
             if ($used > 0) {
@@ -264,6 +272,46 @@ class AccountController extends Controller
             $this->flash('success', 'ลบอีเมลแล้ว');
         }
         $this->redirect('account/emails');
+    }
+
+    /** Restrict which domains may be registered (empty list = ทุกโดเมน). */
+    public function addDomain(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::ownerId();
+        $domain = CustomerEmailDomain::normalize((string) $this->input('domain'));
+        if (!CustomerEmailDomain::isValid($domain)) {
+            $this->flash('danger', 'โดเมนไม่ถูกต้อง (ตัวอย่าง: rvc.ac.th)');
+        } elseif (CustomerEmailDomain::count('user_id = ? AND domain = ?', [$userId, $domain])) {
+            $this->flash('danger', 'โดเมนนี้อยู่ในรายการแล้ว');
+        } else {
+            CustomerEmailDomain::insert(['user_id' => $userId, 'domain' => $domain]);
+            $this->flash('success', "จำกัดการลงทะเบียนอีเมลไว้ที่โดเมน {$domain} แล้ว");
+        }
+        $this->redirect('account/emails');
+    }
+
+    public function deleteDomain(): void
+    {
+        $this->requireAuth();
+        Csrf::verify();
+        $userId = Auth::ownerId();
+        $id = (int) $this->input('id');
+        $row = CustomerEmailDomain::find($id);
+        if (!$row || (int) $row['user_id'] !== $userId) {
+            $this->flash('danger', 'ไม่พบโดเมน');
+        } else {
+            CustomerEmailDomain::deleteForUser($id, $userId);
+            $this->flash('success', 'ลบโดเมนออกจากรายการแล้ว');
+        }
+        $this->redirect('account/emails');
+    }
+
+    /** Message listing the domains an address must belong to. */
+    private function domainError(int $userId): string
+    {
+        return 'ลงทะเบียนได้เฉพาะอีเมลของโดเมน ' . implode(', ', CustomerEmailDomain::listForUser($userId)) . ' เท่านั้น';
     }
 
     /** Allow the add-email form to return to the page it was opened from. */

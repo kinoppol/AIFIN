@@ -59,6 +59,8 @@ $router->post('account/emails',  [AccountController::class, 'addEmail']);
 $router->post('account/emails/update', [AccountController::class, 'updateEmail']);
 $router->post('account/emails/status', [AccountController::class, 'toggleEmailStatus']);
 $router->post('account/emails/delete', [AccountController::class, 'deleteEmail']);
+$router->post('account/emails/domains', [AccountController::class, 'addDomain']);
+$router->post('account/emails/domains/delete', [AccountController::class, 'deleteDomain']);
 $router->get('account/team',     [TeamController::class, 'index']);
 $router->post('account/team',    [TeamController::class, 'store']);
 $router->post('account/team/update', [TeamController::class, 'update']);
